@@ -132,7 +132,7 @@ export function NotesEditor({ note }: { note: Note }) {
             }}
             onBlur={() => flush({ title })}
             placeholder="タイトル"
-            className="tracking-display w-full bg-transparent text-[24px] font-bold leading-tight text-[var(--color-ink)] outline-none placeholder:text-[var(--color-line-strong)]"
+            className="editor-field tracking-display -ml-3 w-full bg-transparent pl-3 text-[24px] font-bold leading-tight text-[var(--color-ink)] placeholder:text-[var(--color-line-strong)]"
           />
 
           <AssociationBar note={note} systems={systemsForSelect} products={productsForSelect} />
@@ -150,7 +150,7 @@ export function NotesEditor({ note }: { note: Note }) {
             onBlur={() => flush({ content })}
             placeholder="学んだこと、実案件での使われ方、疑問点、次に調べること…"
             rows={20}
-            className="mt-6 min-h-[50dvh] w-full resize-none bg-transparent text-[15px] leading-8 text-[var(--color-ink)] outline-none placeholder:text-[var(--color-ink-muted)]"
+            className="editor-field mt-6 min-h-[50dvh] w-full resize-none bg-transparent pl-3 -ml-3 text-[15px] leading-8 text-[var(--color-ink)] placeholder:text-[var(--color-ink-muted)]"
           />
         </div>
       </div>

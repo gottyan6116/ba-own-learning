@@ -19,7 +19,7 @@
 
   --color-ink: #16191f; /* 主要テキスト（charcoal / dark navy 寄り） */
   --color-ink-secondary: #454c58; /* 補助テキスト。本文として読める濃さ */
-  --color-ink-muted: #6b7280; /* ラベル・メタ情報。4.5:1 を確保 */
+  --color-ink-muted: #616873; /* ラベル・メタ情報。白と area-tint の両方で 4.5:1 以上 */
 
   --color-line: #e4e5e8; /* 標準のヘアライン */
   --color-line-strong: #c9ccd2; /* 区切りを効かせたい線 */
@@ -235,4 +235,11 @@ body {
   *::after {
     transition-duration: 0.01ms !important;
   }
+}
+
+/* エディタのタイトル・本文は面積が大きいため、枠でフォーカスを示すと騒がしい。
+   左端のアクセントバーで示す（キャレットだけに頼らず、可視のインジケータは残す）。 */
+.editor-field:focus-visible {
+  outline: none;
+  box-shadow: inset 3px 0 0 var(--area-accent);
 }

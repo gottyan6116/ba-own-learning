@@ -16,7 +16,7 @@ export default function HomePage() {
           </p>
         </div>
 
-        <dl className="flex shrink-0 items-end gap-6">
+        <dl className="flex shrink-0 flex-wrap items-end gap-x-6 gap-y-3">
           <Stat label="Business Areas" value={businessAreas.length} />
           <Stat label="System Categories" value={systemCategories.length} />
           <Stat label="Products" value={products.length} />

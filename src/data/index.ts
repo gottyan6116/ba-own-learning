@@ -61,14 +61,26 @@ export function getAreaForSystem(systemId: string): BusinessArea | undefined {
 }
 
 /**
- * `relatedConcepts` / `related` の要素は system id のこともあれば、
- * ただの用語のこともある。クリック可能かどうかをここで判定する。
+ * `relatedConcepts` / `related` の要素は、system id（"ma"）のことも、
+ * 略称そのまま（"SFA"）のことも、ただの用語（"MQL"）のこともある。
+ * データを書くときに表記を統一しなくても、辿れるものは辿れるようにする。
+ *
+ * "CRM" のように略称が複数の領域に存在する場合は、定義順の先頭（営業側）を返す。
  */
+const relatedLookup = new Map<string, SystemCategory>();
+for (const system of systemCategories) {
+  relatedLookup.set(system.id.toLowerCase(), system);
+  const short = system.shortName.toLowerCase();
+  if (!relatedLookup.has(short)) relatedLookup.set(short, system);
+  const name = system.name.toLowerCase();
+  if (!relatedLookup.has(name)) relatedLookup.set(name, system);
+}
+
 export function resolveRelated(token: string):
   | { kind: "system"; system: SystemCategory }
   | { kind: "product"; product: Product }
   | { kind: "term"; label: string } {
-  const system = systemCategoryMap[token];
+  const system = relatedLookup.get(token.toLowerCase());
   if (system) return { kind: "system", system };
   const product = productMap[token];
   if (product) return { kind: "product", product };

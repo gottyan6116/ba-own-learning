@@ -13,14 +13,14 @@ export function ProductListItem({ product }: { product: Product }) {
       type="button"
       onClick={() => openProduct(product.id)}
       aria-haspopup="dialog"
-      className="group flex w-full cursor-pointer items-center gap-2 rounded-[4px] py-1.5 pr-1 pl-2 text-left transition-colors duration-150 hover:bg-[var(--area-tint)]"
+      className="group flex w-full cursor-pointer items-start gap-2 rounded-[4px] py-2 pr-1 pl-2 text-left transition-colors duration-150 hover:bg-[var(--area-tint)]"
     >
       <BrandLogo companyId={product.companyId} size={14} />
       <span className="min-w-0">
-        <span className="block truncate text-[13px] font-medium leading-4 text-[var(--color-ink)] transition-colors duration-150 group-hover:text-[var(--area-accent)]">
+        <span className="block text-[13px] font-medium leading-[1.35] text-[var(--color-ink)] transition-colors duration-150 group-hover:text-[var(--area-accent)]">
           {product.name}
         </span>
-        <span className="block truncate text-[11px] leading-4 text-[var(--color-ink-muted)]">
+        <span className="mt-0.5 block truncate text-[11px] leading-4 text-[var(--color-ink-muted)]">
           {company?.name}
         </span>
       </span>

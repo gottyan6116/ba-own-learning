@@ -24,10 +24,10 @@ export function SystemCategoryButton({
       className="group flex w-full cursor-pointer items-start justify-between gap-2 border-b border-[var(--color-line-faint)] py-2.5 pr-1 pl-2 text-left transition-colors duration-150 hover:bg-[var(--area-tint)]"
     >
       <span className="min-w-0">
-        <span className="block truncate text-[15px] font-semibold leading-5 text-[var(--color-ink)] transition-colors duration-150 group-hover:text-[var(--area-accent)]">
+        <span className="block text-[15px] font-semibold leading-5 text-[var(--color-ink)] transition-colors duration-150 group-hover:text-[var(--area-accent)]">
           {system.shortName}
         </span>
-        <span className="mt-0.5 block truncate text-[12px] leading-4 text-[var(--color-ink-muted)]">
+        <span className="mt-0.5 block text-[12px] leading-[1.4] text-[var(--color-ink-muted)]">
           {system.nameJa}
         </span>
       </span>

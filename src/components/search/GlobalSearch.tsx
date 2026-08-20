@@ -72,7 +72,7 @@ export function GlobalSearch() {
       <Dialog.Trigger asChild>
         <button
           type="button"
-          className="flex h-9 cursor-pointer items-center gap-2 rounded-[4px] border border-[var(--color-line)] bg-white pr-2 pl-2.5 text-[13px] text-[var(--color-ink-muted)] transition-colors duration-150 hover:border-[var(--color-line-strong)] sm:w-64"
+          className="flex h-9 min-w-0 shrink cursor-pointer items-center gap-2 rounded-[4px] border border-[var(--color-line)] bg-white pr-2 pl-2.5 text-[13px] text-[var(--color-ink-muted)] transition-colors duration-150 hover:border-[var(--color-line-strong)] sm:w-52 lg:w-64"
         >
           <SearchIcon />
           <span className="hidden flex-1 text-left sm:block">検索</span>
