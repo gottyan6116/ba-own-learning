@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { searchKnowledge, type SearchResult } from "@/lib/knowledge/search";
 import { useKnowledgeView } from "@/lib/knowledge/KnowledgeViewProvider";
 import { useNotes } from "@/lib/notes/NotesProvider";
+import { useProjects } from "@/lib/projects/ProjectsProvider";
 import { areaClass } from "@/components/ui/primitives";
 import { getBusinessArea } from "@/data";
 
@@ -14,21 +15,27 @@ const KIND_LABEL: Record<SearchResult["kind"], string> = {
   system: "システム",
   product: "製品",
   note: "メモ",
+  project: "プロジェクト",
 };
 
 /**
- * Global Search。Business Area / System / Product / Company / Notes を横断する。
- * 検索結果からも「ページ遷移せずモーダルで開く」を保つ。
+ * Global Search。Business Area / System / Product / Notes / Projects を横断する。
+ * 検索結果からも「ページ遷移せずモーダルで開く」を保つ（Notes / Projects は
+ * 元々別ページなので、そこだけ router.push で移動する）。
  */
 export function GlobalSearch() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
   const { notes } = useNotes();
+  const { projects } = useProjects();
   const { openSystem, openProduct } = useKnowledgeView();
   const router = useRouter();
 
-  const results = useMemo(() => searchKnowledge(query, notes), [query, notes]);
+  const results = useMemo(
+    () => searchKnowledge(query, notes, projects),
+    [query, notes, projects],
+  );
 
   useEffect(() => setActiveIndex(0), [query]);
 
@@ -49,6 +56,7 @@ export function GlobalSearch() {
     if (result.kind === "system") return openSystem(result.id);
     if (result.kind === "product") return openProduct(result.id);
     if (result.kind === "note") return router.push(`/notes?note=${result.id}`);
+    if (result.kind === "project") return router.push(`/projects?project=${result.id}`);
     // 業務領域はマップ上の位置そのものなので、トップへ戻して該当列へ飛ばす
     router.push(`/#area-${result.id}`);
   };
@@ -98,7 +106,7 @@ export function GlobalSearch() {
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 onKeyDown={onKeyDown}
-                placeholder="MA、Marketo、ERP、自分のメモ…"
+                placeholder="MA、Marketo、ERP、自分のメモ・プロジェクト…"
                 aria-label="検索キーワード"
                 className="h-12 w-full bg-transparent text-[15px] text-[var(--color-ink)] outline-none placeholder:text-[var(--color-ink-muted)]"
               />
@@ -107,7 +115,7 @@ export function GlobalSearch() {
             <div className="scroll-area min-h-0 flex-1 overflow-y-auto">
               {query.trim() === "" ? (
                 <p className="px-4 py-6 text-[13px] leading-6 text-[var(--color-ink-muted)]">
-                  業務領域・システムカテゴリ・製品・企業名・自分のメモを横断して検索します。
+                  業務領域・システムカテゴリ・製品・自分のメモ・プロジェクトを横断して検索します。
                 </p>
               ) : results.length === 0 ? (
                 <p className="px-4 py-6 text-[13px] text-[var(--color-ink-muted)]">

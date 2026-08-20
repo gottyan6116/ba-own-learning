@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { businessAreas } from "@/data";
 import { useNotes } from "@/lib/notes/NotesProvider";
 import { sortNotes, type Note } from "@/lib/notes/types";
@@ -23,6 +23,10 @@ export function NotesWorkspace() {
   const [filter, setFilter] = useState<NotebookFilter>("all");
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  // モバイルで「← 一覧に戻る」を押した直後だけ true。
+  // これが無いと、下の自動選択 effect が selectedId=null を「未選択」と
+  // 誤解して即座に先頭のメモを選び直し、戻るボタンが効かなくなる。
+  const clearedByUser = useRef(false);
 
   const visible = useMemo(() => filterNotes(notes, filter, query), [notes, filter, query]);
 
@@ -30,17 +34,25 @@ export function NotesWorkspace() {
   useEffect(() => {
     if (!requestedId) return;
     if (!notes.some((note) => note.id === requestedId)) return;
+    clearedByUser.current = false;
     setSelectedId(requestedId);
     setFilter("all");
   }, [requestedId, notes]);
 
-  // 選択中のメモが消えた / まだ選んでいないときは、先頭を開く
+  // 選択中のメモが消えた / まだ選んでいないときは、先頭を開く。
+  // ただし「戻る」で意図的に外した直後は割り込まない。
   useEffect(() => {
     if (selectedId && notes.some((note) => note.id === selectedId)) return;
+    if (clearedByUser.current) return;
     setSelectedId(visible[0]?.id ?? null);
   }, [visible, notes, selectedId]);
 
   const selected = notes.find((note) => note.id === selectedId) ?? null;
+
+  const selectNote = (id: string | null) => {
+    clearedByUser.current = id === null;
+    setSelectedId(id);
+  };
 
   const handleCreate = async () => {
     const areaFromFilter = businessAreas.find((area) => area.id === filter)?.id ?? null;
@@ -50,7 +62,7 @@ export function NotesWorkspace() {
       business_area: areaFromFilter,
     });
     if (created) {
-      setSelectedId(created.id);
+      selectNote(created.id);
       if (requestedId) router.replace("/notes");
     }
   };
@@ -133,7 +145,7 @@ export function NotesWorkspace() {
             selectedId={selectedId}
             query={query}
             onQueryChange={setQuery}
-            onSelect={setSelectedId}
+            onSelect={selectNote}
             onCreate={() => void handleCreate()}
           />
         </div>
@@ -143,7 +155,7 @@ export function NotesWorkspace() {
             <>
               <button
                 type="button"
-                onClick={() => setSelectedId(null)}
+                onClick={() => selectNote(null)}
                 className="cursor-pointer border-b border-[var(--color-line)] bg-white px-4 py-2 text-left text-[13px] text-[var(--color-ink-muted)] md:hidden"
               >
                 ← 一覧に戻る

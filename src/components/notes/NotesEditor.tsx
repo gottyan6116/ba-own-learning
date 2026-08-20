@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import {
   businessAreas,
@@ -12,6 +13,8 @@ import {
 } from "@/data";
 import { useNotes } from "@/lib/notes/NotesProvider";
 import type { Note } from "@/lib/notes/types";
+import { useProjects } from "@/lib/projects/ProjectsProvider";
+import { projectNameOrFallback } from "@/lib/projects/types";
 import { formatDateTime } from "@/lib/format";
 import { areaClass } from "@/components/ui/primitives";
 
@@ -168,6 +171,7 @@ function AssociationBar({
   products: typeof allProducts;
 }) {
   const { updateNote } = useNotes();
+  const { projects } = useProjects();
 
   const setArea = (value: string) => {
     void updateNote(note.id, {
@@ -199,6 +203,15 @@ function AssociationBar({
     });
   };
 
+  const setProject = (value: string) => {
+    const project = projects.find((item) => item.id === value);
+    void updateNote(note.id, {
+      project_id: value || null,
+      // プロジェクトに業務領域が設定済みで、メモ側が未分類なら引き継ぐ
+      business_area: note.business_area ?? project?.business_area ?? null,
+    });
+  };
+
   return (
     <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 border-y border-[var(--color-line-faint)] py-3">
       <Select label="業務領域" value={note.business_area ?? ""} onChange={setArea}>
@@ -227,6 +240,25 @@ function AssociationBar({
           </option>
         ))}
       </Select>
+
+      <Select label="プロジェクト" value={note.project_id ?? ""} onChange={setProject}>
+        <option value="">未設定</option>
+        {projects.map((project) => (
+          <option key={project.id} value={project.id}>
+            {projectNameOrFallback(project)}
+            {project.is_archived ? "（アーカイブ）" : ""}
+          </option>
+        ))}
+      </Select>
+
+      {note.project_id && (
+        <Link
+          href={`/projects?project=${note.project_id}`}
+          className="text-[13px] text-[var(--color-zenith)] underline-offset-2 hover:underline"
+        >
+          プロジェクトを開く →
+        </Link>
+      )}
     </div>
   );
 }

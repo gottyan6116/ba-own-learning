@@ -3,6 +3,7 @@
 import { getProduct, getSystemCategory } from "@/data";
 import { formatDateTime } from "@/lib/format";
 import { noteTitleOrFallback, notePreview, type Note } from "@/lib/notes/types";
+import { useProjects } from "@/lib/projects/ProjectsProvider";
 import { areaClass } from "@/components/ui/primitives";
 
 /**
@@ -24,6 +25,8 @@ export function NotesList({
   onSelect: (id: string) => void;
   onCreate: () => void;
 }) {
+  const { projects } = useProjects();
+
   return (
     <div className="flex h-full min-h-0 flex-col border-r border-[var(--color-line)] bg-white">
       <div className="flex items-center gap-2 border-b border-[var(--color-line)] px-3 py-2">
@@ -61,7 +64,10 @@ export function NotesList({
           {notes.map((note) => {
             const system = getSystemCategory(note.system_category);
             const product = getProduct(note.product_key);
-            const tags = [product?.name, system?.shortName].filter(Boolean) as string[];
+            const project = projects.find((item) => item.id === note.project_id);
+            const tags = [project?.name, product?.name, system?.shortName].filter(
+              Boolean,
+            ) as string[];
             const selected = note.id === selectedId;
             return (
               <li key={note.id}>

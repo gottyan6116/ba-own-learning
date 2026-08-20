@@ -7,16 +7,18 @@ import {
 } from "@/data";
 import type { Note } from "@/lib/notes/types";
 import { noteTitleOrFallback } from "@/lib/notes/types";
+import type { Project } from "@/lib/projects/types";
+import { projectNameOrFallback } from "@/lib/projects/types";
 
 /**
  * Global Search。
  *
  * MVP では全文検索エンジンを入れない。対象は数十件のマスターデータと
- * 個人のメモだけなので、素直な部分一致とスコアリングで十分に速い。
- * （Notes が数千件を超えたら Supabase 側の全文検索へ寄せる）
+ * 個人のメモ・プロジェクトだけなので、素直な部分一致とスコアリングで十分に速い。
+ * （データが数千件を超えたら Supabase 側の全文検索へ寄せる）
  */
 
-export type SearchResultKind = "area" | "system" | "product" | "note";
+export type SearchResultKind = "area" | "system" | "product" | "note" | "project";
 
 export interface SearchResult {
   kind: SearchResultKind;
@@ -63,7 +65,11 @@ function best(needle: string, fields: Array<[string, number]>): number {
   return score;
 }
 
-export function searchKnowledge(rawQuery: string, notes: Note[] = []): SearchResult[] {
+export function searchKnowledge(
+  rawQuery: string,
+  notes: Note[] = [],
+  projects: Project[] = [],
+): SearchResult[] {
   const query = normalize(rawQuery.trim());
   if (query.length === 0) return [];
 
@@ -146,6 +152,24 @@ export function searchKnowledge(rawQuery: string, notes: Note[] = []): SearchRes
         subtitle: `メモ / ${new Date(note.updated_at).toLocaleDateString("ja-JP")}`,
         areaId: note.business_area,
         score: score + 5, // 自分の書いたものは少し優先する
+      });
+    }
+  }
+
+  for (const project of projects) {
+    const score = best(query, [
+      [project.name, 1.1],
+      [project.client ?? "", 0.9],
+      [project.summary, 0.4],
+    ]);
+    if (score > 0) {
+      results.push({
+        kind: "project",
+        id: project.id,
+        title: projectNameOrFallback(project),
+        subtitle: project.client || "プロジェクト",
+        areaId: project.business_area,
+        score: score + 5, // 自分の案件は少し優先する
       });
     }
   }

@@ -29,6 +29,10 @@ export function notesForArea(notes: Note[], areaId: string): Note[] {
   return sortNotes(notes.filter((note) => note.business_area === areaId));
 }
 
+export function notesForProject(notes: Note[], projectId: string): Note[] {
+  return sortNotes(notes.filter((note) => note.project_id === projectId));
+}
+
 export function countNotesForSystem(notes: Note[], systemId: string): number {
   return notesForSystem(notes, systemId).length;
 }

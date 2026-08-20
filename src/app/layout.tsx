@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Inter, Noto_Sans_JP } from "next/font/google";
 import "./globals.css";
+import { AuthProvider } from "@/lib/auth/AuthProvider";
 import { NotesProvider } from "@/lib/notes/NotesProvider";
+import { ProjectsProvider } from "@/lib/projects/ProjectsProvider";
 import { KnowledgeViewProvider } from "@/lib/knowledge/KnowledgeViewProvider";
 import { KnowledgeModal } from "@/components/knowledge/KnowledgeModal";
 import { AppHeader } from "@/components/layout/AppHeader";
@@ -38,23 +40,27 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="ja" className={`${inter.variable} ${notoSansJP.variable}`}>
       <body className="min-h-dvh">
-        <NotesProvider>
-          <KnowledgeViewProvider>
-            <a
-              href="#main"
-              className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-3 focus:z-50 focus:rounded-[4px] focus:bg-[var(--color-ink)] focus:px-3 focus:py-2 focus:text-[13px] focus:text-white"
-            >
-              メインコンテンツへスキップ
-            </a>
-            <div className="flex min-h-dvh flex-col">
-              <AppHeader />
-              <main id="main" className="flex min-h-0 flex-1 flex-col">
-                {children}
-              </main>
-            </div>
-            <KnowledgeModal />
-          </KnowledgeViewProvider>
-        </NotesProvider>
+        <AuthProvider>
+          <NotesProvider>
+            <ProjectsProvider>
+              <KnowledgeViewProvider>
+                <a
+                  href="#main"
+                  className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-3 focus:z-50 focus:rounded-[4px] focus:bg-[var(--color-ink)] focus:px-3 focus:py-2 focus:text-[13px] focus:text-white"
+                >
+                  メインコンテンツへスキップ
+                </a>
+                <div className="flex min-h-dvh flex-col">
+                  <AppHeader />
+                  <main id="main" className="flex min-h-0 flex-1 flex-col">
+                    {children}
+                  </main>
+                </div>
+                <KnowledgeModal />
+              </KnowledgeViewProvider>
+            </ProjectsProvider>
+          </NotesProvider>
+        </AuthProvider>
       </body>
     </html>
   );

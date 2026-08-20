@@ -3,23 +3,38 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { GlobalSearch } from "@/components/search/GlobalSearch";
+import { useAuth } from "@/lib/auth/AuthProvider";
 import { useNotes } from "@/lib/notes/NotesProvider";
+import { useProjects } from "@/lib/projects/ProjectsProvider";
 
 const NAV = [
   { href: "/", label: "Knowledge Map" },
+  { href: "/projects", label: "プロジェクト" },
   { href: "/notes", label: "Notes" },
 ];
 
 /**
  * 幅が足りない端末では、ナビを2段目に落とす。
  * ラベルを削ったり折り返したりして読めなくするより、行を増やすほうがよい。
+ *
+ * 認証状態は AuthProvider から直接読む。Notes / Projects の件数バッジは
+ * それぞれの Provider から読む（データの持ち主が違うため）。
  */
 export function AppHeader() {
   const pathname = usePathname();
-  const { status, user, signOut, notes } = useNotes();
+  const { status, user, signOut } = useAuth();
+  const { notes } = useNotes();
+  const { projects } = useProjects();
+
+  const countFor = (href: string) => {
+    if (href === "/notes") return notes.length;
+    if (href === "/projects") return projects.length;
+    return 0;
+  };
 
   const navLinks = NAV.map((item) => {
     const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+    const count = countFor(item.href);
     return (
       <Link
         key={item.href}
@@ -32,9 +47,9 @@ export function AppHeader() {
         }`}
       >
         {item.label}
-        {item.href === "/notes" && notes.length > 0 && (
+        {count > 0 && (
           <span className="tabular ml-1.5 text-[11px] text-[var(--color-ink-muted)]">
-            {notes.length}
+            {count}
           </span>
         )}
         {active && (
@@ -67,7 +82,7 @@ export function AppHeader() {
         <div className="flex min-w-0 flex-1 items-center justify-end gap-2 sm:gap-3">
           <GlobalSearch />
 
-          {status === "ready" && user ? (
+          {status === "signed-in" && user ? (
             <div className="flex min-w-0 items-center gap-2">
               <span
                 className="hidden max-w-[18ch] truncate text-[12px] text-[var(--color-ink-muted)] lg:block"

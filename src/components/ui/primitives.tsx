@@ -61,6 +61,32 @@ export function Chip({
   );
 }
 
+/** 複数選択のトグル用チップ。ナビゲーションはせず、選択状態を持つだけ。 */
+export function ToggleChip({
+  selected,
+  onClick,
+  children,
+}: {
+  selected: boolean;
+  onClick: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={selected}
+      className={`inline-flex cursor-pointer items-center rounded-[3px] border px-2 py-1 text-[12px] leading-none transition-colors duration-150 ${
+        selected
+          ? "border-[var(--color-zenith)] bg-[var(--color-zenith)] text-white"
+          : "border-[var(--color-line-strong)] bg-white text-[var(--color-ink-secondary)] hover:border-[var(--color-zenith)] hover:text-[var(--color-zenith)]"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
 /** 業務領域の識別ラベル。色は「識別できる程度」に留める。 */
 export function AreaBadge({ areaId, className = "" }: { areaId: string | null; className?: string }) {
   const area = getBusinessArea(areaId);

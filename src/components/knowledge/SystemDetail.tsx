@@ -12,15 +12,19 @@ import {
 import { useKnowledgeView } from "@/lib/knowledge/KnowledgeViewProvider";
 import { useNotes } from "@/lib/notes/NotesProvider";
 import { notesForSystem } from "@/lib/notes/relations";
+import { useProjects } from "@/lib/projects/ProjectsProvider";
+import { projectsForSystem } from "@/lib/projects/relations";
 import { BrandLogo } from "@/components/ui/BrandLogo";
 import { Chip, Section, TermList } from "@/components/ui/primitives";
 import { RelatedNotes } from "./RelatedNotes";
+import { RelatedProjects } from "./RelatedProjects";
 import { ModalHeader } from "./ModalHeader";
 
 export function SystemDetail({ systemId }: { systemId: string }) {
   const system = getSystemCategory(systemId);
   const { pushProduct, pushSystem, back, stack } = useKnowledgeView();
   const { notes } = useNotes();
+  const { status: projectsStatus, projects } = useProjects();
 
   if (!system) {
     return (
@@ -36,6 +40,7 @@ export function SystemDetail({ systemId }: { systemId: string }) {
   const area = getAreaForSystem(system.id);
   const products = getProductsForSystem(system.id);
   const related = notesForSystem(notes, system.id);
+  const relatedProjects = projectsForSystem(projects, system.id);
 
   const previous = stack.length > 1 ? stack[stack.length - 2] : null;
   const previousLabel = previous
@@ -158,6 +163,22 @@ export function SystemDetail({ systemId }: { systemId: string }) {
             })}
           </div>
         </Section>
+
+        {projectsStatus === "ready" && (
+          <Section
+            title="Related Projects"
+            aside={
+              <span className="tabular text-[12px] text-[var(--color-ink-muted)]">
+                {relatedProjects.length} 件
+              </span>
+            }
+          >
+            <RelatedProjects
+              projects={relatedProjects}
+              emptyLabel={`${system.shortName} を使っているプロジェクトはまだありません。`}
+            />
+          </Section>
+        )}
 
         <Section
           title="My Notes"

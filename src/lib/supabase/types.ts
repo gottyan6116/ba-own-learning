@@ -15,10 +15,12 @@ export type NoteRow = {
   business_area: string | null;
   system_category: string | null;
   product_key: string | null;
+  /** 紐づく案件。src/lib/supabase/types.ts の ProjectRow を参照。任意。 */
+  project_id: string | null;
   is_pinned: boolean;
   created_at: string;
   updated_at: string;
-}
+};
 
 export type NoteInsert = Omit<NoteRow, "id" | "created_at" | "updated_at"> & {
   id?: string;
@@ -27,6 +29,36 @@ export type NoteInsert = Omit<NoteRow, "id" | "created_at" | "updated_at"> & {
 };
 
 export type NoteUpdate = Partial<Omit<NoteRow, "id" | "user_id" | "created_at">>;
+
+/** planning=検討中 / active=進行中 / on_hold=保留 / done=完了 */
+export type ProjectStatus = "planning" | "active" | "on_hold" | "done";
+
+export type ProjectRow = {
+  id: string;
+  user_id: string;
+  name: string;
+  client: string | null;
+  status: ProjectStatus;
+  summary: string;
+  business_area: string | null;
+  /** src/data/systems.ts の id の配列 */
+  system_categories: string[];
+  /** src/data/products.ts の id の配列 */
+  product_keys: string[];
+  start_date: string | null;
+  due_date: string | null;
+  is_archived: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ProjectInsert = Omit<ProjectRow, "id" | "created_at" | "updated_at"> & {
+  id?: string;
+  created_at?: string;
+  updated_at?: string;
+};
+
+export type ProjectUpdate = Partial<Omit<ProjectRow, "id" | "user_id" | "created_at">>;
 
 export type Database = {
   __InternalSupabase: {
@@ -38,6 +70,12 @@ export type Database = {
         Row: NoteRow;
         Insert: NoteInsert;
         Update: NoteUpdate;
+        Relationships: [];
+      };
+      projects: {
+        Row: ProjectRow;
+        Insert: ProjectInsert;
+        Update: ProjectUpdate;
         Relationships: [];
       };
     };

@@ -2,11 +2,12 @@ import type { NoteRow } from "@/lib/supabase/types";
 
 export type Note = NoteRow;
 
-/** Knowledge Map のどこに紐づけるか。すべて任意。 */
+/** Knowledge Map / Projects のどこに紐づけるか。すべて任意。 */
 export interface NoteLink {
   business_area?: string | null;
   system_category?: string | null;
   product_key?: string | null;
+  project_id?: string | null;
 }
 
 export interface NoteDraft extends NoteLink {
