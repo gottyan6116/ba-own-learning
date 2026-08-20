@@ -1,0 +1,238 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   Design tokens
+   --------------------------------------------------------------------------
+   Primitive → Semantic → Component の3層。
+   コンポーネント側に raw hex を書かない。ここにない色は使わない。
+
+   方向性: 高品質なコンサルティング資料 × 業務SaaS。
+   紙のような下地、細いヘアライン、強いタイポグラフィ階層で構造を見せる。
+   装飾（グラデーション・グロー・影の多用）で見栄えを作らない。
+   ========================================================================== */
+
+@theme {
+  /* ---- Primitive: neutrals ------------------------------------------- */
+  --color-paper: #fbfbfa; /* ページ下地。純白より一段落ち着かせる */
+  --color-surface: #ffffff; /* カード・モーダル・パネル */
+  --color-surface-sunken: #f4f4f3; /* リストの選択前背景、コードなど */
+
+  --color-ink: #16191f; /* 主要テキスト（charcoal / dark navy 寄り） */
+  --color-ink-secondary: #454c58; /* 補助テキスト。本文として読める濃さ */
+  --color-ink-muted: #6b7280; /* ラベル・メタ情報。4.5:1 を確保 */
+
+  --color-line: #e4e5e8; /* 標準のヘアライン */
+  --color-line-strong: #c9ccd2; /* 区切りを効かせたい線 */
+  --color-line-faint: #eef0f1; /* リスト内の極細線 */
+
+  --color-focus: #1f5c93; /* フォーカスリング */
+  --color-danger: #a3282d;
+  --color-danger-tint: #fbeeee;
+
+  /* ---- Semantic: Business Area accents --------------------------------
+     「識別できる程度」に留める。彩度を上げない。
+     すべて白背景に対して 4.5:1 以上。 */
+  --color-area-management: #384e7e;
+  --color-area-marketing: #1f5c93;
+  --color-area-sales: #16685c;
+  --color-area-delivery: #7a5610;
+  --color-area-customer: #2f6b3c;
+  --color-area-backoffice: #565278;
+
+  /* ---- Typography ------------------------------------------------------ */
+  --font-sans: var(--font-inter), var(--font-noto-sans-jp), "Hiragino Kaku Gothic ProN",
+    "Yu Gothic", Meiryo, system-ui, sans-serif;
+
+  /* ---- Radius / shadow — 抑制する ------------------------------------- */
+  --radius-xs: 2px;
+  --radius-sm: 3px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+
+  --shadow-panel: 0 1px 2px rgb(22 25 31 / 0.04), 0 8px 24px rgb(22 25 31 / 0.06);
+  --shadow-modal: 0 1px 3px rgb(22 25 31 / 0.08), 0 24px 60px rgb(22 25 31 / 0.16);
+
+  /* ---- Motion ---------------------------------------------------------- */
+  --ease-out-soft: cubic-bezier(0.16, 0.72, 0.3, 1);
+  --duration-modal: 200ms;
+}
+
+/* ==========================================================================
+   Business Area の色付け
+   各領域のコンテナに `area-<id>` を付けると、配下で var(--area-accent) と
+   var(--area-tint) が使える。Tailwind の動的クラス名問題も踏まない。
+   ========================================================================== */
+
+.area-management {
+  --area-accent: var(--color-area-management);
+  --area-tint: #eef1f7;
+}
+.area-marketing {
+  --area-accent: var(--color-area-marketing);
+  --area-tint: #eaf1f8;
+}
+.area-sales {
+  --area-accent: var(--color-area-sales);
+  --area-tint: #e6f2ef;
+}
+.area-delivery {
+  --area-accent: var(--color-area-delivery);
+  --area-tint: #f7f0e2;
+}
+.area-customer {
+  --area-accent: var(--color-area-customer);
+  --area-tint: #eaf3ec;
+}
+.area-backoffice {
+  --area-accent: var(--color-area-backoffice);
+  --area-tint: #f0eff5;
+}
+/* 領域が特定できない場合（Uncategorized など）のフォールバック */
+.area-none {
+  --area-accent: var(--color-ink-muted);
+  --area-tint: var(--color-surface-sunken);
+}
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body {
+  overflow-x: clip;
+}
+
+body {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-feature-settings: "palt" 1;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* 数字は等幅で。指標や日付が縦に揃う。 */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* 見出しの英字だけ字間を締める（日本語には効かせない） */
+.tracking-display {
+  letter-spacing: -0.011em;
+}
+
+.label-caps {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+}
+
+:where(a, button, input, textarea, select, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-xs);
+}
+
+::selection {
+  background: #dbe6f1;
+}
+
+/* スクロールできる領域であることを控えめに示す */
+.scroll-area {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line-strong) transparent;
+}
+
+/* ==========================================================================
+   Modal motion
+   backdrop fade / opacity / translateY 10px / scale 0.985 / 200ms。
+   bounce・glow・3D は使わない。
+   ========================================================================== */
+
+@keyframes overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes overlay-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes modal-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(6px) scale(0.99);
+  }
+}
+
+.modal-overlay[data-state="open"] {
+  animation: overlay-in var(--duration-modal) var(--ease-out-soft);
+}
+.modal-overlay[data-state="closed"] {
+  animation: overlay-out 140ms ease-in;
+}
+.modal-panel[data-state="open"] {
+  animation: modal-in var(--duration-modal) var(--ease-out-soft);
+}
+.modal-panel[data-state="closed"] {
+  animation: modal-out 140ms ease-in;
+}
+
+/* モーダル内でセクションを切り替えたときの、ごく短いフェード */
+@keyframes panel-swap {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.panel-swap {
+  animation: panel-swap 160ms var(--ease-out-soft);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-overlay[data-state],
+  .modal-panel[data-state],
+  .panel-swap {
+    animation: none !important;
+  }
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+  }
+}
