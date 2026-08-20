@@ -42,9 +42,6 @@ export function KnowledgeModal() {
           <div
             className={`modal-panel ${areaClass(areaId)} pointer-events-auto flex max-h-[calc(100dvh-2rem)] w-full max-w-[1040px] flex-col overflow-hidden rounded-[10px] border border-[var(--color-line)] bg-[var(--color-surface)] shadow-[var(--shadow-modal)] sm:max-h-[86dvh]`}
           >
-            {/* accent rule — どの業務領域の話かを一目で示す */}
-            <div aria-hidden="true" className="h-[3px] shrink-0 bg-[var(--area-accent)]" />
-
             <div className="relative min-h-0 flex-1 overflow-y-auto scroll-area" ref={scrollRef}>
               <Dialog.Close
                 aria-label="閉じる"

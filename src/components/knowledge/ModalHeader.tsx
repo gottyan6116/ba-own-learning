@@ -27,7 +27,7 @@ export function ModalHeader({
   breadcrumb?: ReactNode;
 }) {
   return (
-    <header className="border-b border-[var(--color-line)] bg-[var(--area-tint)] px-6 pt-6 pb-5 sm:px-8 sm:pt-7">
+    <header className="border-b border-[var(--color-line)] px-6 pt-6 pb-5 sm:px-8 sm:pt-7">
       {breadcrumb}
       <div className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1">
         <AreaBadge areaId={areaId} />

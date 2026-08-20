@@ -51,7 +51,7 @@ export function Chip({
       type="button"
       onClick={onClick}
       title={title}
-      className={`${base} cursor-pointer border-[var(--color-line-strong)] bg-white text-[var(--color-ink)] transition-colors duration-150 hover:border-[var(--area-accent)] hover:text-[var(--area-accent)]`}
+      className={`${base} cursor-pointer border-[var(--color-line-strong)] bg-white text-[var(--color-ink)] transition-colors duration-150 hover:border-[var(--color-zenith)] hover:text-[var(--color-zenith)]`}
     >
       {children}
       <span aria-hidden="true" className="ml-1.5 text-[var(--color-ink-muted)]">
@@ -67,9 +67,8 @@ export function AreaBadge({ areaId, className = "" }: { areaId: string | null; c
   if (!area) return null;
   return (
     <span
-      className={`${areaClass(area.id)} inline-flex items-center gap-1.5 text-[12px] font-medium text-[var(--area-accent)] ${className}`}
+      className={`${areaClass(area.id)} inline-flex items-center text-[12px] font-semibold tracking-wide text-[var(--area-accent)] ${className}`}
     >
-      <span aria-hidden="true" className="h-2 w-2 rounded-[1px] bg-[var(--area-accent)]" />
       {area.name}
     </span>
   );

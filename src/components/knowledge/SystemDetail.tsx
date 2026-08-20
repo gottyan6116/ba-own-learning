@@ -77,7 +77,7 @@ export function SystemDetail({ systemId }: { systemId: string }) {
             </dl>
           )}
           {system.distinction && (
-            <p className="max-w-[70ch] border-l-2 border-[var(--area-accent)] pl-3 text-[14px] leading-7 text-[var(--color-ink-secondary)]">
+            <p className="max-w-[70ch] border-l border-[var(--color-line-strong)] pl-4 text-[14px] leading-7 text-[var(--color-ink-secondary)]">
               {system.distinction}
             </p>
           )}

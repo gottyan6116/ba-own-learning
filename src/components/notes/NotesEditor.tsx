@@ -82,7 +82,7 @@ export function NotesEditor({ note }: { note: Note }) {
             aria-pressed={note.is_pinned}
             className={`h-9 cursor-pointer rounded-[4px] px-2.5 text-[12px] transition-colors duration-150 ${
               note.is_pinned
-                ? "bg-[var(--area-tint)] text-[var(--area-accent)]"
+                ? "bg-[var(--color-surface-selected)] text-[var(--color-zenith)]"
                 : "text-[var(--color-ink-muted)] hover:bg-[var(--color-surface-sunken)]"
             }`}
           >

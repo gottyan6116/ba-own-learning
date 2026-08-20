@@ -13,7 +13,7 @@ export function ProductListItem({ product }: { product: Product }) {
       type="button"
       onClick={() => openProduct(product.id)}
       aria-haspopup="dialog"
-      className="group flex w-full cursor-pointer items-start gap-2 rounded-[4px] py-2 pr-1 pl-2 text-left transition-colors duration-150 hover:bg-[var(--area-tint)]"
+      className="group flex w-full cursor-pointer items-start gap-2 rounded-[4px] py-2 pr-1 pl-2 text-left transition-colors duration-150 hover:bg-[var(--color-surface-sunken)]"
     >
       <BrandLogo companyId={product.companyId} productId={product.id} size={14} />
       <span className="min-w-0">

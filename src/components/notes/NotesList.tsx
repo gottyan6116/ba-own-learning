@@ -70,14 +70,16 @@ export function NotesList({
                   onClick={() => onSelect(note.id)}
                   aria-current={selected ? "true" : undefined}
                   className={`${areaClass(note.business_area)} w-full cursor-pointer border-b border-[var(--color-line-faint)] px-3 py-3 text-left transition-colors duration-150 ${
-                    selected ? "bg-[var(--area-tint)]" : "hover:bg-[var(--color-surface-sunken)]"
+                    selected
+                      ? "bg-[var(--color-surface-selected)]"
+                      : "hover:bg-[var(--color-surface-sunken)]"
                   }`}
                 >
                   <span className="flex items-baseline gap-2">
                     {note.is_pinned && (
                       <span
                         aria-hidden="true"
-                        className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--area-accent)]"
+                        className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--color-ink-muted)]"
                       />
                     )}
                     <span className="min-w-0 flex-1 truncate text-[14px] font-medium text-[var(--color-ink)]">

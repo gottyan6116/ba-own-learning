@@ -92,7 +92,7 @@ export function ProductDetail({ productId }: { productId: string }) {
           </dl>
 
           {product.note && (
-            <p className="mt-4 max-w-[70ch] border-l-2 border-[var(--area-accent)] pl-3 text-[14px] leading-7 text-[var(--color-ink-secondary)]">
+            <p className="mt-4 max-w-[70ch] border-l border-[var(--color-line-strong)] pl-4 text-[14px] leading-7 text-[var(--color-ink-secondary)]">
               {product.note}
             </p>
           )}

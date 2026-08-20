@@ -27,7 +27,7 @@ export function NotesSidebar({
   return (
     <nav
       aria-label="ノートブック"
-      className="scroll-area h-full overflow-y-auto border-r border-[var(--color-line)] bg-[var(--color-paper)] px-2 py-3"
+      className="scroll-area h-full overflow-y-auto border-r border-[var(--color-line)] px-2 py-3"
     >
       <h2 className="label-caps px-2 pb-2">Notebooks</h2>
 
@@ -88,13 +88,10 @@ function Item({
       aria-current={active ? "true" : undefined}
       className={`${areaClass(areaId ?? null)} flex w-full cursor-pointer items-center gap-2 rounded-[4px] px-2 py-1.5 text-left text-[13px] transition-colors duration-150 ${
         active
-          ? "bg-white font-medium text-[var(--color-ink)] shadow-[inset_0_0_0_1px_var(--color-line)]"
-          : "text-[var(--color-ink-secondary)] hover:bg-white"
+          ? "bg-[var(--color-surface-selected)] font-medium text-[var(--color-ink)]"
+          : "text-[var(--color-ink-secondary)] hover:bg-[var(--color-surface-sunken)]"
       }`}
     >
-      {areaId && (
-        <span aria-hidden="true" className="h-2.5 w-[3px] shrink-0 bg-[var(--area-accent)]" />
-      )}
       <span className="min-w-0 flex-1 truncate">{label}</span>
       <span className="tabular shrink-0 text-[11px] text-[var(--color-ink-muted)]">{count}</span>
     </button>

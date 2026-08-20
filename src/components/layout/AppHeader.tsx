@@ -40,7 +40,7 @@ export function AppHeader() {
         {active && (
           <span
             aria-hidden="true"
-            className="absolute inset-x-3 bottom-0 h-[2px] bg-[var(--color-ink)]"
+            className="absolute inset-x-3 bottom-0 h-[2px] bg-[var(--color-zenith)]"
           />
         )}
       </Link>
@@ -48,7 +48,7 @@ export function AppHeader() {
   });
 
   return (
-    <header className="sticky top-0 z-30 border-b border-[var(--color-line)] bg-[var(--color-header)]/92 backdrop-blur-[6px]">
+    <header className="sticky top-0 z-30 border-b border-[var(--color-line)] bg-white/92 backdrop-blur-[6px]">
       <div className="mx-auto flex h-14 w-full max-w-[1440px] items-center gap-3 px-4 sm:gap-4 sm:px-6 lg:px-8">
         <Link
           href="/"
@@ -92,7 +92,7 @@ export function AppHeader() {
           ) : (
             <Link
               href="/login"
-              className="flex h-9 shrink-0 items-center whitespace-nowrap rounded-[4px] border border-[var(--color-line-strong)] px-3 text-[12px] font-medium text-[var(--color-ink)] transition-colors duration-150 hover:bg-white"
+              className="flex h-9 shrink-0 items-center whitespace-nowrap rounded-[4px] border border-[var(--color-line-strong)] px-3 text-[12px] font-medium text-[var(--color-ink)] transition-colors duration-150 hover:bg-[var(--color-surface-sunken)]"
             >
               ログイン
             </Link>

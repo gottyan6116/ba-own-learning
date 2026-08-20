@@ -21,7 +21,7 @@ export function SystemCategoryButton({
       type="button"
       onClick={() => openSystem(system.id)}
       aria-haspopup="dialog"
-      className="group flex w-full cursor-pointer items-start justify-between gap-2 border-b border-[var(--color-line-faint)] py-2.5 pr-1 pl-2 text-left transition-colors duration-150 hover:bg-[var(--area-tint)]"
+      className="group flex w-full cursor-pointer items-start justify-between gap-2 border-b border-[var(--color-line-faint)] py-2.5 pr-1 pl-2 text-left transition-colors duration-150 hover:bg-[var(--color-surface-sunken)]"
     >
       <span className="min-w-0">
         <span className="block text-[15px] font-semibold leading-5 text-[var(--color-ink)] transition-colors duration-150 group-hover:text-[var(--area-accent)]">
@@ -33,7 +33,7 @@ export function SystemCategoryButton({
       </span>
       {noteCount > 0 && (
         <span
-          className="tabular mt-0.5 shrink-0 rounded-[3px] bg-[var(--area-tint)] px-1.5 py-0.5 text-[11px] font-medium text-[var(--area-accent)] group-hover:bg-white"
+          className="tabular mt-0.5 shrink-0 rounded-[3px] border border-[var(--color-line)] px-1.5 py-0.5 text-[11px] font-medium text-[var(--color-ink-muted)]"
           title={`関連メモ ${noteCount} 件`}
         >
           {noteCount}

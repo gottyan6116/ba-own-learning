@@ -4,7 +4,7 @@ import { businessAreas, products, systemCategories } from "@/data";
 export default function HomePage() {
   return (
     <div className="mx-auto w-full max-w-[1440px] px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
-      <div className="mb-8 flex flex-wrap items-end justify-between gap-x-8 gap-y-4 border-b border-[var(--color-line-strong)] pb-5">
+      <div className="mb-8 flex flex-wrap items-end justify-between gap-x-8 gap-y-4 border-b border-[var(--color-line)] pb-5">
         <div>
           <p className="label-caps">Business Knowledge Map</p>
           <h1 className="tracking-display mt-1.5 text-[24px] font-bold leading-tight text-[var(--color-ink)] sm:text-[28px]">

@@ -3,51 +3,51 @@
 /* ==========================================================================
    Design tokens
    --------------------------------------------------------------------------
-   Primitive → Semantic → Component の3層。
    コンポーネント側に raw hex を書かない。ここにない色は使わない。
 
-   方向性: 高品質なコンサルティング資料 × 業務SaaS。
-   紙のような下地、細いヘアライン、強いタイポグラフィ階層で構造を見せる。
-   装飾（グラデーション・グロー・影の多用）で見栄えを作らない。
+   原則:
+   - 下地は白。面を色で塗らない。
+   - 上端・左端に色のバーを置かない（構造は罫線とタイポグラフィで示す）。
+   - 水色は「差し色」。操作できるもの（ボタン・リンク・フォーカス・選択）と、
+     読み取ってほしい数字にだけ出す。
+   - 業務領域の色は「文字」にだけ出す。面には出さない。
    ========================================================================== */
 
 @theme {
-  /* ---- Primitive: 水色ファミリー ---------------------------------------
-     このアプリの「クローム」（下地・罫線・主要アクション）を担う色。
-     業務領域の識別色（下の area accents）とは役割を分けている:
-       クローム = 淡い面と線 / 領域 = 濃い文字と3pxのバー
-     どちらも青系だが、明度と使われ方が違うので混ざらない。 */
+  /* ---- 差し色: 水色ファミリー ------------------------------------------ */
   --color-sky: #7fc4e0; /* スカイブルー */
   --color-horizon: #a9d6e5; /* ホリゾンブルー */
-  --color-zenith: #2f6da8; /* ゼニスブルー — 主アクションとフォーカス */
+  --color-zenith: #2f6da8; /* ゼニスブルー — 主アクション・フォーカス・リンク */
   --color-zenith-hover: #255b8e;
   --color-azure: #c3e3f2; /* アザーブルー */
   --color-baby: #dceef8; /* ベビーブルー */
-  --color-forget-me-not: #cbddf2; /* 勿忘草 */
+  --color-forget-me-not: #cbddf2; /* 勿忘草 — テキスト選択 */
 
-  /* ---- Semantic: 面 ---------------------------------------------------- */
-  --color-paper: #f3f8fc; /* ページ下地。白より一段沈ませた水色寄りの紙 */
-  --color-surface: #ffffff; /* カード・モーダル・パネル */
-  --color-surface-sunken: #e9f2f9; /* リスト背景、フッタ、コード */
-  --color-header: #e7f1f9; /* 固定ヘッダー */
+  /* ---- 面 --------------------------------------------------------------
+     hover / selected のときだけ、ごく淡い水色が下に敷かれる。 */
+  --color-paper: #ffffff;
+  --color-surface: #ffffff;
+  --color-surface-sunken: #f4f8fb; /* hover・フッタ */
+  --color-surface-selected: #e9f1f7; /* 選択中の行 */
 
-  /* ---- Semantic: 文字 --------------------------------------------------- */
-  --color-ink: #12202b; /* 主要テキスト。青みを含む charcoal */
-  --color-ink-secondary: #3f4f5d; /* 補助テキスト。本文として読める濃さ */
-  --color-ink-muted: #5c6b78; /* ラベル・メタ情報。全 tint 上で 4.5:1 以上 */
+  /* ---- 文字 ------------------------------------------------------------- */
+  --color-ink: #14181d;
+  --color-ink-secondary: #3d4650;
+  --color-ink-muted: #5d6771; /* 白・淡い水色の面の両方で 4.5:1 以上 */
 
-  /* ---- Semantic: 線 ----------------------------------------------------- */
-  --color-line: #d8e5ee;
-  --color-line-strong: #b5cbda;
-  --color-line-faint: #e6eef5;
+  /* ---- 線 --------------------------------------------------------------- */
+  --color-rule: #14181d; /* 表の最上部だけに引く太い罫 */
+  --color-line: #dde3e8;
+  --color-line-strong: #bcc5cd;
+  --color-line-faint: #eaeef1;
 
   --color-focus: var(--color-zenith);
   --color-danger: #a3282d;
   --color-danger-tint: #fbeeee;
 
-  /* ---- Semantic: Business Area accents --------------------------------
-     「識別できる程度」に留める。彩度を上げない。
-     すべて白背景・自領域の tint 上で 4.5:1 以上。 */
+  /* ---- Business Area accents ------------------------------------------
+     文字にだけ使う。面・バー・枠には使わない。
+     11px の小さな英字ラベルに載るので、白背景で 4.5:1 以上を必ず確保する。 */
   --color-area-management: #384e7e;
   --color-area-marketing: #1f5c93;
   --color-area-sales: #16685c;
@@ -65,8 +65,7 @@
   --radius-md: 6px;
   --radius-lg: 10px;
 
-  --shadow-panel: 0 1px 2px rgb(18 32 43 / 0.04), 0 8px 24px rgb(18 32 43 / 0.06);
-  --shadow-modal: 0 1px 3px rgb(18 32 43 / 0.08), 0 24px 60px rgb(18 32 43 / 0.18);
+  --shadow-modal: 0 1px 3px rgb(20 24 29 / 0.08), 0 24px 60px rgb(20 24 29 / 0.18);
 
   /* ---- Motion ---------------------------------------------------------- */
   --ease-out-soft: cubic-bezier(0.16, 0.72, 0.3, 1);
@@ -74,39 +73,32 @@
 }
 
 /* ==========================================================================
-   Business Area の色付け
-   各領域のコンテナに `area-<id>` を付けると、配下で var(--area-accent) と
-   var(--area-tint) が使える。Tailwind の動的クラス名問題も踏まない。
+   Business Area
+   コンテナに `area-<id>` を付けると、配下で var(--area-accent) が使える。
+   Tailwind の動的クラス名問題も踏まない。
    ========================================================================== */
 
 .area-management {
   --area-accent: var(--color-area-management);
-  --area-tint: #e4eaf7;
 }
 .area-marketing {
   --area-accent: var(--color-area-marketing);
-  --area-tint: #ddecf9;
 }
 .area-sales {
   --area-accent: var(--color-area-sales);
-  --area-tint: #daefea;
 }
 .area-delivery {
   --area-accent: var(--color-area-delivery);
-  --area-tint: #f6ebd5;
 }
 .area-customer {
   --area-accent: var(--color-area-customer);
-  --area-tint: #e0efe4;
 }
 .area-backoffice {
   --area-accent: var(--color-area-backoffice);
-  --area-tint: #eae7f5;
 }
-/* 領域が特定できない場合（Uncategorized など）のフォールバック */
+/* 領域が特定できない場合（Uncategorized など） */
 .area-none {
   --area-accent: var(--color-ink-muted);
-  --area-tint: var(--color-surface-sunken);
 }
 
 /* ==========================================================================
@@ -138,15 +130,24 @@ body {
 
 /* 見出しの英字だけ字間を締める（日本語には効かせない） */
 .tracking-display {
-  letter-spacing: -0.011em;
+  letter-spacing: -0.012em;
 }
 
 .label-caps {
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
   color: var(--color-ink-muted);
+}
+
+/* 業務領域の英字ラベル。ここが領域の色を出す場所。 */
+.label-area {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--area-accent);
 }
 
 :where(a, button, input, textarea, select, [tabindex]):focus-visible {
@@ -163,6 +164,13 @@ body {
 .scroll-area {
   scrollbar-width: thin;
   scrollbar-color: var(--color-line-strong) transparent;
+}
+
+/* エディタのタイトル・本文は面積が大きいため、枠でフォーカスを示すと騒がしい。
+   左端の細いバーで示す（キャレットだけに頼らず、可視のインジケータは残す）。 */
+.editor-field:focus-visible {
+  outline: none;
+  box-shadow: inset 2px 0 0 var(--color-zenith);
 }
 
 /* ==========================================================================
@@ -251,11 +259,4 @@ body {
   *::after {
     transition-duration: 0.01ms !important;
   }
-}
-
-/* エディタのタイトル・本文は面積が大きいため、枠でフォーカスを示すと騒がしい。
-   左端のアクセントバーで示す（キャレットだけに頼らず、可視のインジケータは残す）。 */
-.editor-field:focus-visible {
-  outline: none;
-  box-shadow: inset 3px 0 0 var(--area-accent);
 }

@@ -126,13 +126,9 @@ export function GlobalSearch() {
                           onMouseEnter={() => setActiveIndex(index)}
                           onClick={() => select(result)}
                           className={`${areaClass(result.areaId)} flex w-full cursor-pointer items-center gap-3 border-b border-[var(--color-line-faint)] px-4 py-2.5 text-left ${
-                            index === activeIndex ? "bg-[var(--area-tint)]" : "bg-white"
+                            index === activeIndex ? "bg-[var(--color-surface-selected)]" : "bg-white"
                           }`}
                         >
-                          <span
-                            aria-hidden="true"
-                            className="h-6 w-[3px] shrink-0 rounded-[1px] bg-[var(--area-accent)]"
-                          />
                           <span className="min-w-0 flex-1">
                             <span className="block truncate text-[14px] font-medium text-[var(--color-ink)]">
                               {result.title}
