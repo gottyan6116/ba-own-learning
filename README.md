@@ -129,7 +129,14 @@ npm run dev
 2. **SQL Editor** を開き、`supabase/migrations/20260820000000_create_notes.sql` の中身を貼って実行する。
    `notes` テーブル・インデックス・`updated_at` トリガー・RLS ポリシーがまとめて作られる。
 3. **Authentication → Sign In / Providers → Email** で、Email を有効にする。
-   MVP はマジックリンクのみ想定なので `Confirm email` は有効のままでよい。
+   ログインはメール＋パスワード方式（`Confirm email` はどちらでもよい）。
+
+   - **ON（既定）**: 新規登録の直後だけ確認メールのリンクを1回踏む必要がある。以後はパスワードのみでログイン。
+   - **OFF**: 登録した瞬間にログイン状態になる。1人で使う個人用ツールなら OFF のほうが摩擦がない。
+
+   どちらでも、**Authentication → Sign In / Providers → Email → Allow new users to sign up**
+   は、自分のアカウントを作り終えたら OFF にしておくことを推奨する（第三者が勝手にアカウントを
+   作れる状態を残さないため）。
 4. **Authentication → URL Configuration** を設定する。ここは間違えやすいので下の表のとおりに。
 
    | 項目 | 入れる値 | 意味 |
