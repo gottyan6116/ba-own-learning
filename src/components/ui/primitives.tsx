@@ -17,7 +17,7 @@ export function Section({
   children: ReactNode;
 }) {
   return (
-    <section className="border-t border-[var(--color-line)] px-6 py-5 sm:px-8">
+    <section className="border-t border-[var(--color-line)] px-6 py-5 first:border-t-0 sm:px-8">
       <div className="mb-3 flex items-baseline justify-between gap-3">
         <h3 className="label-caps">{title}</h3>
         {aside}

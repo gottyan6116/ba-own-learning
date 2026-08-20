@@ -113,7 +113,7 @@ export function NotesWorkspace() {
             onClick={() => setFilter(value)}
             className={`h-9 shrink-0 cursor-pointer rounded-[4px] border px-3 text-[13px] ${
               filter === value
-                ? "border-[var(--color-ink)] bg-[var(--color-ink)] text-white"
+                ? "border-[var(--color-zenith)] bg-[var(--color-zenith)] text-white"
                 : "border-[var(--color-line)] bg-white text-[var(--color-ink-secondary)]"
             }`}
           >

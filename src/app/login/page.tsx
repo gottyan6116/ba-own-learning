@@ -98,7 +98,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={state === "sending"}
-            className="mt-4 h-11 w-full cursor-pointer rounded-[4px] bg-[var(--color-ink)] text-[14px] font-medium text-white transition-opacity duration-150 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+            className="mt-4 h-11 w-full cursor-pointer rounded-[4px] bg-[var(--color-zenith)] text-[14px] font-medium text-white transition-colors duration-150 hover:bg-[var(--color-zenith-hover)] disabled:cursor-not-allowed disabled:opacity-50"
           >
             {state === "sending" ? "送信中…" : "ログインリンクを送る"}
           </button>

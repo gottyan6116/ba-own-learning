@@ -41,6 +41,8 @@ Business Process → System Category → Product / Solution → Detailed Knowled
 - **Supabase**（Postgres + Auth + Row Level Security）— Notes の永続化と認証のみ
 - **@radix-ui/react-dialog** — モーダルと検索パレット（focus trap・ESC・aria を自作しないため）
 - ランタイム依存はこれだけ。アイコンライブラリは入れていない（必要な SVG は直接記述）
+- ベンダーマークは `simple-icons` を **devDependency** として使い、必要な分だけビルド時に
+  TypeScript へ抽出する（3,300 個のアイコンを本番バンドルに入れない）
 
 ---
 
@@ -128,9 +130,21 @@ npm run dev
    `notes` テーブル・インデックス・`updated_at` トリガー・RLS ポリシーがまとめて作られる。
 3. **Authentication → Sign In / Providers → Email** で、Email を有効にする。
    MVP はマジックリンクのみ想定なので `Confirm email` は有効のままでよい。
-4. **Authentication → URL Configuration** で以下を設定する。
-   - Site URL: `http://localhost:3000`（本番は `https://<project>.vercel.app`）
-   - Redirect URLs: `http://localhost:3000/auth/callback` と本番の `https://<project>.vercel.app/auth/callback`
+4. **Authentication → URL Configuration** を設定する。ここは間違えやすいので下の表のとおりに。
+
+   | 項目 | 入れる値 | 意味 |
+   |---|---|---|
+   | Site URL | `https://<project>.vercel.app`（**本番のURL1つだけ**） | リダイレクト先が指定されなかったときの既定値。メール文面のリンクの土台にもなる |
+   | Redirect URLs | `http://localhost:3000/auth/callback` と `https://<project>.vercel.app/auth/callback`（**両方**） | 戻り先として許可する URL の一覧。ここに無い URL へは戻れない |
+
+   Site URL は「1つしか入らない欄」なので、**本番の URL を入れる**。
+   ローカル開発は Redirect URLs 側に localhost を足しておけば通る
+   （このアプリは `NEXT_PUBLIC_SITE_URL` から戻り先を明示的に渡しているため、
+   ローカルでは localhost、Vercel では本番ドメインへ戻る）。
+
+   まだデプロイしていない段階なら、Site URL に一時的に `http://localhost:3000` を入れても動く。
+   デプロイしたら本番 URL に直すこと。直し忘れると、本番から送ったログインメールのリンクが
+   localhost に戻ろうとして開けない。
 5. **Project Settings → API** から URL と anon（publishable）キーを取得し、`.env.local` に入れる。
 
 ### RLS の確認
@@ -231,16 +245,52 @@ Knowledge Map は DB ではなく `src/data/` の TypeScript を編集して育�
 
 Desktop のマップは `grid-cols-6` 固定なので、列数も合わせて変更する。
 
-### ベンダーマーク
+### ベンダーマーク・製品ロゴ
 
-Simple Icons に存在するベンダーは `scripts/generate-brand-logos.mjs` の `WANTED` に
-`companyId: "slug"` を足して `npm run gen:logos`。存在しないベンダーは
-`companies.ts` の `monogram` が使われる。ロゴはすべてモノクロ・同一タイルで表示し、
-**識別子としてのみ**使う（装飾アイコンとして使わない）。
+マークは次の優先順位で解決される（`scripts/generate-brand-logos.mjs`）。
+
+| 優先 | 置き場所 | 用途 |
+|---|---|---|
+| 1 | `public/logos/products/<productId>.svg` | 製品そのもののロゴ。会社マークより優先 |
+| 2 | `public/logos/<companyId>.svg` | 会社のロゴ |
+| 3 | `simple-icons` の公式パス | 自動取得（CC0）。公式ブランドカラーで描画 |
+| 4 | `companies.ts` の `monogram` + `brandColor` | 上のどれも無いベンダー |
+
+SVG を置いたら `npm run gen:logos` を1回実行する。出力は `src/data/brandLogos.generated.ts`
+（手で編集しない）。
+
+**現状ベクターで入っているのは9社ぶんだけ**。Simple Icons は商標権者の要請で多くのブランドを
+削除しており、Adobe / Oracle / ServiceNow / Genesys / kintone / freee / SmartHR /
+クラウドサイン / Anaplan / Tableau / Power BI は自動取得できないため、ブランドカラーの
+モノグラムで表示している。各社のブランドガイドラインのページから公式 SVG を落として
+`public/logos/` に置けば、そのまま本物に差し替わる。
+
+ロゴは**識別子としてのみ**使う（装飾アイコンとして使わない）。商標は各社に帰属する。
 
 ---
 
-## 11. 既知の制約 / 今後
+## 11. Visual design
+
+色は `src/app/globals.css` の `@theme` にしかない。コンポーネントに raw hex を書かない。
+
+役割を2系統に分けている。
+
+- **クローム（水色ファミリー）** — 下地・罫線・ヘッダー・主要アクション。
+  `--color-sky` / `--color-horizon` / `--color-zenith` / `--color-azure` / `--color-baby` /
+  `--color-forget-me-not`。画面全体のトーンを決める。
+- **業務領域アクセント** — 6領域の識別。`--color-area-*` と `.area-<id>` の `--area-tint`。
+  濃い文字色と3pxのバーで使い、淡い面はクロームが担う。だから両方が青系でも混ざらない。
+
+Knowledge Map は「6枚のカード」ではなく「1枚のシート＋色の付いた表頭」として組んでいる。
+列が上から下までつながって見えることが、この地図の読み方（業務 → システム → 製品）そのものだから。
+モーダルのヘッダーも同じ `--area-tint` を使い、地図と詳細が同じ色の言語で結ばれるようにしている。
+
+文字色は白・全 `--area-tint` の両方で 4.5:1 以上を確保している。トークンを触るときは
+`--color-ink-muted`（12px の補助テキストに使う）のコントラストを必ず測り直すこと。
+
+---
+
+## 12. 既知の制約 / 今後
 
 - 全文検索は素朴な部分一致。メモが数千件を超えたら Supabase 側の全文検索へ寄せる。
 - Notes の本文はプレーンテキスト。Markdown レンダリングは未実装。

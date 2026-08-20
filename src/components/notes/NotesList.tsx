@@ -40,7 +40,7 @@ export function NotesList({
         <button
           type="button"
           onClick={onCreate}
-          className="h-9 shrink-0 cursor-pointer rounded-[4px] bg-[var(--color-ink)] px-3 text-[13px] font-medium text-white transition-opacity duration-150 hover:opacity-90"
+          className="h-9 shrink-0 cursor-pointer rounded-[4px] bg-[var(--color-zenith)] px-3 text-[13px] font-medium text-white transition-colors duration-150 hover:bg-[var(--color-zenith-hover)]"
         >
           新規
         </button>

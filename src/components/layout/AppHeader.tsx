@@ -48,7 +48,7 @@ export function AppHeader() {
   });
 
   return (
-    <header className="sticky top-0 z-30 border-b border-[var(--color-line)] bg-[var(--color-paper)]/95 backdrop-blur-[2px]">
+    <header className="sticky top-0 z-30 border-b border-[var(--color-line)] bg-[var(--color-header)]/92 backdrop-blur-[6px]">
       <div className="mx-auto flex h-14 w-full max-w-[1440px] items-center gap-3 px-4 sm:gap-4 sm:px-6 lg:px-8">
         <Link
           href="/"

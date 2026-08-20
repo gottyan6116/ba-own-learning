@@ -12,26 +12,42 @@
    ========================================================================== */
 
 @theme {
-  /* ---- Primitive: neutrals ------------------------------------------- */
-  --color-paper: #fbfbfa; /* ページ下地。純白より一段落ち着かせる */
+  /* ---- Primitive: 水色ファミリー ---------------------------------------
+     このアプリの「クローム」（下地・罫線・主要アクション）を担う色。
+     業務領域の識別色（下の area accents）とは役割を分けている:
+       クローム = 淡い面と線 / 領域 = 濃い文字と3pxのバー
+     どちらも青系だが、明度と使われ方が違うので混ざらない。 */
+  --color-sky: #7fc4e0; /* スカイブルー */
+  --color-horizon: #a9d6e5; /* ホリゾンブルー */
+  --color-zenith: #2f6da8; /* ゼニスブルー — 主アクションとフォーカス */
+  --color-zenith-hover: #255b8e;
+  --color-azure: #c3e3f2; /* アザーブルー */
+  --color-baby: #dceef8; /* ベビーブルー */
+  --color-forget-me-not: #cbddf2; /* 勿忘草 */
+
+  /* ---- Semantic: 面 ---------------------------------------------------- */
+  --color-paper: #f3f8fc; /* ページ下地。白より一段沈ませた水色寄りの紙 */
   --color-surface: #ffffff; /* カード・モーダル・パネル */
-  --color-surface-sunken: #f4f4f3; /* リストの選択前背景、コードなど */
+  --color-surface-sunken: #e9f2f9; /* リスト背景、フッタ、コード */
+  --color-header: #e7f1f9; /* 固定ヘッダー */
 
-  --color-ink: #16191f; /* 主要テキスト（charcoal / dark navy 寄り） */
-  --color-ink-secondary: #454c58; /* 補助テキスト。本文として読める濃さ */
-  --color-ink-muted: #616873; /* ラベル・メタ情報。白と area-tint の両方で 4.5:1 以上 */
+  /* ---- Semantic: 文字 --------------------------------------------------- */
+  --color-ink: #12202b; /* 主要テキスト。青みを含む charcoal */
+  --color-ink-secondary: #3f4f5d; /* 補助テキスト。本文として読める濃さ */
+  --color-ink-muted: #5c6b78; /* ラベル・メタ情報。全 tint 上で 4.5:1 以上 */
 
-  --color-line: #e4e5e8; /* 標準のヘアライン */
-  --color-line-strong: #c9ccd2; /* 区切りを効かせたい線 */
-  --color-line-faint: #eef0f1; /* リスト内の極細線 */
+  /* ---- Semantic: 線 ----------------------------------------------------- */
+  --color-line: #d8e5ee;
+  --color-line-strong: #b5cbda;
+  --color-line-faint: #e6eef5;
 
-  --color-focus: #1f5c93; /* フォーカスリング */
+  --color-focus: var(--color-zenith);
   --color-danger: #a3282d;
   --color-danger-tint: #fbeeee;
 
   /* ---- Semantic: Business Area accents --------------------------------
      「識別できる程度」に留める。彩度を上げない。
-     すべて白背景に対して 4.5:1 以上。 */
+     すべて白背景・自領域の tint 上で 4.5:1 以上。 */
   --color-area-management: #384e7e;
   --color-area-marketing: #1f5c93;
   --color-area-sales: #16685c;
@@ -49,8 +65,8 @@
   --radius-md: 6px;
   --radius-lg: 10px;
 
-  --shadow-panel: 0 1px 2px rgb(22 25 31 / 0.04), 0 8px 24px rgb(22 25 31 / 0.06);
-  --shadow-modal: 0 1px 3px rgb(22 25 31 / 0.08), 0 24px 60px rgb(22 25 31 / 0.16);
+  --shadow-panel: 0 1px 2px rgb(18 32 43 / 0.04), 0 8px 24px rgb(18 32 43 / 0.06);
+  --shadow-modal: 0 1px 3px rgb(18 32 43 / 0.08), 0 24px 60px rgb(18 32 43 / 0.18);
 
   /* ---- Motion ---------------------------------------------------------- */
   --ease-out-soft: cubic-bezier(0.16, 0.72, 0.3, 1);
@@ -65,27 +81,27 @@
 
 .area-management {
   --area-accent: var(--color-area-management);
-  --area-tint: #eef1f7;
+  --area-tint: #e4eaf7;
 }
 .area-marketing {
   --area-accent: var(--color-area-marketing);
-  --area-tint: #eaf1f8;
+  --area-tint: #ddecf9;
 }
 .area-sales {
   --area-accent: var(--color-area-sales);
-  --area-tint: #e6f2ef;
+  --area-tint: #daefea;
 }
 .area-delivery {
   --area-accent: var(--color-area-delivery);
-  --area-tint: #f7f0e2;
+  --area-tint: #f6ebd5;
 }
 .area-customer {
   --area-accent: var(--color-area-customer);
-  --area-tint: #eaf3ec;
+  --area-tint: #e0efe4;
 }
 .area-backoffice {
   --area-accent: var(--color-area-backoffice);
-  --area-tint: #f0eff5;
+  --area-tint: #eae7f5;
 }
 /* 領域が特定できない場合（Uncategorized など）のフォールバック */
 .area-none {
@@ -140,7 +156,7 @@ body {
 }
 
 ::selection {
-  background: #dbe6f1;
+  background: var(--color-forget-me-not);
 }
 
 /* スクロールできる領域であることを控えめに示す */

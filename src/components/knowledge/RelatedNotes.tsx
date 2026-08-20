@@ -173,7 +173,7 @@ function QuickCompose({
           type="button"
           onClick={submit}
           disabled={busy}
-          className="h-11 cursor-pointer rounded-[4px] bg-[var(--color-ink)] px-4 text-[14px] font-medium text-white transition-opacity duration-150 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+          className="h-11 cursor-pointer rounded-[4px] bg-[var(--color-zenith)] px-4 text-[14px] font-medium text-white transition-colors duration-150 hover:bg-[var(--color-zenith-hover)] disabled:cursor-not-allowed disabled:opacity-50"
         >
           {busy ? "保存中…" : "保存"}
         </button>

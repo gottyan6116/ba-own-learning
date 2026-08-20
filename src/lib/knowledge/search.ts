@@ -1,7 +1,6 @@
 import {
   businessAreas,
   companyMap,
-  getAreaForSystem,
   getSystemsForProduct,
   products,
   systemCategories,
@@ -98,12 +97,14 @@ export function searchKnowledge(rawQuery: string, notes: Note[] = []): SearchRes
       [system.relatedConcepts.join(" "), 0.3],
     ]);
     if (score > 0) {
-      const area = getAreaForSystem(system.id);
+      // 領域名は表示側で前置されるので、ここでは重ねない。
+      // 略称が重複するカテゴリ（営業CRM / カスタマーCRM）を見分けられるよう
+      // タイトルは日本語名にする。
       results.push({
         kind: "system",
         id: system.id,
-        title: `${system.shortName} — ${system.name}`,
-        subtitle: area ? `${area.name} / System Category` : "System Category",
+        title: `${system.shortName} — ${system.nameJa}`,
+        subtitle: "System Category",
         areaId: system.businessArea,
         score,
       });

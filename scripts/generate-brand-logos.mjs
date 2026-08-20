@@ -1,21 +1,30 @@
 /**
- * Extracts the SVG path data for the company marks we actually reference,
- * from the `simple-icons` dev dependency, into a committed TypeScript file.
+ * ベンダーマークの生成。優先順位は次の3段階。
  *
- * Running this at build time keeps `simple-icons` (3,300+ icons) out of the
- * runtime dependency graph — the app ships ~10 path strings instead.
+ *   1. public/logos/<companyId>.svg  … 自分で置いた本物のロゴ（最優先）
+ *   2. simple-icons の公式パス        … CC0 のベクターと公式ブランドカラー
+ *   3. companies.ts の monogram      … 上のどちらも無いベンダー
+ *
+ * simple-icons は商標権者の要請で多くのブランドを削除済みで、このプロジェクトで
+ * 必要な18社のうち取得できるのは9社だけ。残りは `public/logos/` に SVG を置けば
+ * このスクリプトを再実行するだけで差し替わる。
  *
  *   npm run gen:logos
  *
- * Icon paths are CC0 (Simple Icons). Trademarks belong to their owners; the
- * marks are used here purely to identify vendors inside a personal knowledge
- * tool, rendered monochrome so they read as identifiers, not decoration.
+ * 出力は src/data/brandLogos.generated.ts（手で編集しない）。
+ * ロゴは識別のためだけに使う。商標は各社に帰属する。
  */
-import { writeFileSync } from "node:fs";
+import { readdirSync, existsSync, writeFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import path from "node:path";
 import * as simpleIcons from "simple-icons";
 
+const here = path.dirname(fileURLToPath(import.meta.url));
+const logosDir = path.join(here, "..", "public", "logos");
+const productLogosDir = path.join(logosDir, "products");
+
 /** companyId -> simple-icons slug */
-const WANTED = {
+const SIMPLE_ICON_SLUGS = {
   salesforce: "salesforce",
   hubspot: "hubspot",
   google: "google",
@@ -26,31 +35,122 @@ const WANTED = {
   sap: "sap",
 };
 
+/** productId -> simple-icons slug（製品そのものの公式マークがある分だけ） */
+const SIMPLE_ICON_PRODUCT_SLUGS = {
+  jira: "jira",
+  "google-analytics": "googleanalytics",
+};
+
+/**
+ * simple-icons に無いが、図形が単純で正確に再現できるもの。
+ * 推測で描いた「それっぽいロゴ」は入れない（本物でないなら monogram のほうが誠実）。
+ */
+const TILE_MARKS = {
+  microsoft: {
+    title: "Microsoft",
+    viewBox: "0 0 23 23",
+    tiles: [
+      { x: 0, y: 0, w: 10.5, h: 10.5, fill: "#F25022" },
+      { x: 12.5, y: 0, w: 10.5, h: 10.5, fill: "#7FBA00" },
+      { x: 0, y: 12.5, w: 10.5, h: 10.5, fill: "#00A4EF" },
+      { x: 12.5, y: 12.5, w: 10.5, h: 10.5, fill: "#FFB900" },
+    ],
+  },
+};
+
 const toKey = (slug) => "si" + slug.charAt(0).toUpperCase() + slug.slice(1);
 
 const entries = [];
-const missing = [];
+const productEntries = [];
+const sources = { file: [], productFile: [], icon: [], tiles: [] };
 
-for (const [companyId, slug] of Object.entries(WANTED)) {
-  const icon = simpleIcons[toKey(slug)];
-  if (!icon) {
-    missing.push(`${companyId} (${slug})`);
-    continue;
+// 1. public/logos に置かれた本物のロゴ
+const fileMarks = new Set();
+if (existsSync(logosDir)) {
+  for (const name of readdirSync(logosDir)) {
+    if (!name.endsWith(".svg")) continue;
+    const companyId = name.replace(/\.svg$/, "");
+    fileMarks.add(companyId);
+    entries.push(
+      `  ${JSON.stringify(companyId)}: { kind: "file", src: ${JSON.stringify(`/logos/${name}`)} },`,
+    );
+    sources.file.push(companyId);
   }
-  entries.push(`  ${companyId}: {\n    title: ${JSON.stringify(icon.title)},\n    path: ${JSON.stringify(icon.path)},\n  },`);
+}
+
+// 1b. public/logos/products に置かれた製品単位のロゴ（会社マークより優先）
+if (existsSync(productLogosDir)) {
+  for (const name of readdirSync(productLogosDir)) {
+    if (!name.endsWith(".svg")) continue;
+    const productId = name.replace(/\.svg$/, "");
+    productEntries.push(
+      `  ${JSON.stringify(productId)}: { kind: "file", src: ${JSON.stringify(`/logos/products/${name}`)} },`,
+    );
+    sources.productFile.push(productId);
+  }
+}
+
+// 2. simple-icons
+for (const [companyId, slug] of Object.entries(SIMPLE_ICON_SLUGS)) {
+  if (fileMarks.has(companyId)) continue;
+  const icon = simpleIcons[toKey(slug)];
+  if (!icon) continue;
+  entries.push(
+    `  ${JSON.stringify(companyId)}: { kind: "path", title: ${JSON.stringify(icon.title)}, hex: ${JSON.stringify("#" + icon.hex)}, path: ${JSON.stringify(icon.path)} },`,
+  );
+  sources.icon.push(companyId);
+}
+
+// 2b. 製品そのものの公式マーク
+const productFileMarks = new Set(sources.productFile);
+for (const [productId, slug] of Object.entries(SIMPLE_ICON_PRODUCT_SLUGS)) {
+  if (productFileMarks.has(productId)) continue;
+  const icon = simpleIcons[toKey(slug)];
+  if (!icon) continue;
+  productEntries.push(
+    `  ${JSON.stringify(productId)}: { kind: "path", title: ${JSON.stringify(icon.title)}, hex: ${JSON.stringify("#" + icon.hex)}, path: ${JSON.stringify(icon.path)} },`,
+  );
+  sources.icon.push(`${productId} (product)`);
+}
+
+// 3. 図形が単純で正確に再現できるもの
+for (const [companyId, mark] of Object.entries(TILE_MARKS)) {
+  if (fileMarks.has(companyId)) continue;
+  entries.push(
+    `  ${JSON.stringify(companyId)}: { kind: "tiles", title: ${JSON.stringify(mark.title)}, viewBox: ${JSON.stringify(mark.viewBox)}, tiles: ${JSON.stringify(mark.tiles)} },`,
+  );
+  sources.tiles.push(companyId);
 }
 
 const file = `// AUTO-GENERATED by scripts/generate-brand-logos.mjs — do not edit by hand.
-// Source: simple-icons (icon paths are CC0). Run \`npm run gen:logos\` to refresh.
+// Run \`npm run gen:logos\` to refresh. See the script header for the lookup order.
 
-export type BrandMark = { title: string; path: string };
+export type BrandMark =
+  | { kind: "file"; src: string }
+  | { kind: "path"; title: string; hex: string; path: string }
+  | {
+      kind: "tiles";
+      title: string;
+      viewBox: string;
+      tiles: Array<{ x: number; y: number; w: number; h: number; fill: string }>;
+    };
 
 export const BRAND_MARKS: Record<string, BrandMark> = {
 ${entries.join("\n")}
 };
+
+/** 製品単位のロゴ。会社マークより優先される（Tableau / kintone のように親会社と印象が違うもの向け）。 */
+export const PRODUCT_MARKS: Record<string, BrandMark> = {
+${productEntries.join("\n")}
+};
 `;
 
-writeFileSync(new URL("../src/data/brandLogos.generated.ts", import.meta.url), file, "utf8");
+writeFileSync(path.join(here, "..", "src", "data", "brandLogos.generated.ts"), file, "utf8");
 
-console.log(`Wrote ${entries.length} brand marks.`);
-if (missing.length) console.log(`Not in simple-icons (monogram fallback): ${missing.join(", ")}`);
+console.log(`Wrote ${entries.length} company marks and ${productEntries.length} product marks.`);
+if (sources.file.length) console.log(`  from public/logos : ${sources.file.join(", ")}`);
+if (sources.productFile.length)
+  console.log(`  product overrides : ${sources.productFile.join(", ")}`);
+if (sources.icon.length) console.log(`  from simple-icons : ${sources.icon.join(", ")}`);
+if (sources.tiles.length) console.log(`  hand-authored     : ${sources.tiles.join(", ")}`);
+console.log("  everything else falls back to the monogram in src/data/companies.ts");

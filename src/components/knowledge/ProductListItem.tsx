@@ -15,7 +15,7 @@ export function ProductListItem({ product }: { product: Product }) {
       aria-haspopup="dialog"
       className="group flex w-full cursor-pointer items-start gap-2 rounded-[4px] py-2 pr-1 pl-2 text-left transition-colors duration-150 hover:bg-[var(--area-tint)]"
     >
-      <BrandLogo companyId={product.companyId} size={14} />
+      <BrandLogo companyId={product.companyId} productId={product.id} size={14} />
       <span className="min-w-0">
         <span className="block text-[13px] font-medium leading-[1.35] text-[var(--color-ink)] transition-colors duration-150 group-hover:text-[var(--area-accent)]">
           {product.name}

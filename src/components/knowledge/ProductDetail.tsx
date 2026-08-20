@@ -72,7 +72,7 @@ export function ProductDetail({ productId }: { productId: string }) {
           <dl className="grid gap-x-6 gap-y-1 text-[14px] leading-7 sm:grid-cols-[8rem_1fr]">
             <dt className="text-[var(--color-ink-muted)]">Company</dt>
             <dd className="flex items-center gap-2 text-[var(--color-ink-secondary)]">
-              <BrandLogo companyId={product.companyId} size={14} />
+              <BrandLogo companyId={product.companyId} productId={product.id} size={14} />
               {company?.name ?? product.companyId}
             </dd>
 

@@ -16,7 +16,7 @@ export default function HomePage() {
           </p>
         </div>
 
-        <dl className="flex shrink-0 flex-wrap items-end gap-x-6 gap-y-3">
+        <dl className="flex flex-wrap items-end gap-x-6 gap-y-3">
           <Stat label="Business Areas" value={businessAreas.length} />
           <Stat label="System Categories" value={systemCategories.length} />
           <Stat label="Products" value={products.length} />
@@ -37,7 +37,7 @@ function Stat({ label, value }: { label: string; value: number }) {
   return (
     <div>
       <dt className="label-caps">{label}</dt>
-      <dd className="tabular mt-0.5 text-[22px] font-bold leading-none text-[var(--color-ink)]">
+      <dd className="tabular mt-0.5 text-[22px] font-bold leading-none text-[var(--color-zenith)]">
         {value}
       </dd>
     </div>

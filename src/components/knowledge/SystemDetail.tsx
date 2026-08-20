@@ -104,7 +104,7 @@ export function SystemDetail({ systemId }: { systemId: string }) {
                       onClick={() => pushProduct(product.id)}
                       className="group flex w-full cursor-pointer items-start gap-3 py-3 text-left transition-colors duration-150 hover:bg-[var(--color-surface-sunken)]"
                     >
-                      <BrandLogo companyId={product.companyId} />
+                      <BrandLogo companyId={product.companyId} productId={product.id} />
                       <span className="min-w-0 flex-1">
                         <span className="flex items-baseline gap-2">
                           <span className="text-[15px] font-medium text-[var(--color-ink)] group-hover:text-[var(--area-accent)]">
