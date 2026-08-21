@@ -126,7 +126,7 @@ export function LearningDetail({ page }: { page: LearningPage }) {
           {project && (
             <p className="mt-2 text-[13px]">
               <Link
-                href={`/projects?project=${project.id}`}
+                href={`/projects/${project.id}`}
                 className="text-[var(--color-zenith)] underline-offset-2 hover:underline"
               >
                 {projectNameOrFallback(project)}

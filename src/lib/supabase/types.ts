@@ -103,6 +103,34 @@ export type LearningPageUpdate = Partial<
   Omit<LearningPageRow, "id" | "user_id" | "created_at">
 >;
 
+/** todo=未着手 / in_progress=進行中 / blocked=ブロック / done=完了 */
+export type ProjectTaskStatus = "todo" | "in_progress" | "blocked" | "done";
+
+export type ProjectTaskRow = {
+  id: string;
+  user_id: string;
+  project_id: string;
+  title: string;
+  description: string | null;
+  status: ProjectTaskStatus;
+  start_date: string | null;
+  end_date: string | null;
+  progress: number;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ProjectTaskInsert = Omit<ProjectTaskRow, "id" | "created_at" | "updated_at"> & {
+  id?: string;
+  created_at?: string;
+  updated_at?: string;
+};
+
+export type ProjectTaskUpdate = Partial<
+  Omit<ProjectTaskRow, "id" | "user_id" | "project_id" | "created_at">
+>;
+
 export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "12";
@@ -125,6 +153,12 @@ export type Database = {
         Row: LearningPageRow;
         Insert: LearningPageInsert;
         Update: LearningPageUpdate;
+        Relationships: [];
+      };
+      project_tasks: {
+        Row: ProjectTaskRow;
+        Insert: ProjectTaskInsert;
+        Update: ProjectTaskUpdate;
         Relationships: [];
       };
     };

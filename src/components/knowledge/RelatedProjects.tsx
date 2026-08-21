@@ -27,7 +27,7 @@ export function RelatedProjects({
       {projects.map((project) => (
         <li key={project.id}>
           <Link
-            href={`/projects?project=${project.id}`}
+            href={`/projects/${project.id}`}
             className="group flex items-baseline justify-between gap-4 py-2.5 transition-colors duration-150 hover:bg-[var(--color-surface-sunken)]"
           >
             <span className="min-w-0 flex-1 truncate">

@@ -59,7 +59,7 @@ export function GlobalSearch() {
     if (result.kind === "system") return openSystem(result.id);
     if (result.kind === "product") return openProduct(result.id);
     if (result.kind === "note") return router.push(`/notes?note=${result.id}`);
-    if (result.kind === "project") return router.push(`/projects?project=${result.id}`);
+    if (result.kind === "project") return router.push(`/projects/${result.id}`);
     if (result.kind === "learning") return router.push(`/learning?page=${result.id}`);
     // 業務領域はマップ上の位置そのものなので、トップへ戻して該当列へ飛ばす
     router.push(`/#area-${result.id}`);

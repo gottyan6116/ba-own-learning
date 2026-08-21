@@ -2,61 +2,36 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useProjects } from "@/lib/projects/ProjectsProvider";
 import { sortProjects, type Project } from "@/lib/projects/types";
 import { ProjectsList, type StatusFilter } from "./ProjectsList";
-import { ProjectDetail } from "./ProjectDetail";
 
 /**
- * Desktop は 2ペイン（List / Detail）。md 未満では1ペインずつ出す。
- * Notes の NotesWorkspace と同じ骨格 — ?project=id での深いリンク、
- * 選択が消えたら先頭を開く、モバイルは「一覧に戻る」で切り替える。
+ * /projects は一覧専用。Project Detail は /projects/[id] の実 route に
+ * 分離した（概要・タスク・ガント・Notes・Learning の real route タブを
+ * 持たせるため、React state だけの fake tab では作れない）。
  */
 export function ProjectsWorkspace() {
   const { status, projects, createProject } = useProjects();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const requestedId = searchParams.get("project");
+  const legacyProjectId = searchParams.get("project");
 
   const [filter, setFilter] = useState<StatusFilter>("all");
   const [query, setQuery] = useState("");
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  // モバイルで「← 一覧に戻る」を押した直後だけ true。
-  // これが無いと、下の自動選択 effect が selectedId=null を「未選択」と
-  // 誤解して即座に先頭のプロジェクトを選び直し、戻るボタンが効かなくなる。
-  const clearedByUser = useRef(false);
 
   const visible = useMemo(() => filterProjects(projects, filter, query), [projects, filter, query]);
 
+  // 旧: /projects?project=id （インライン選択）から遷移してきた古いリンク・
+  // ブックマークを、新しい実 route へ救済する。
   useEffect(() => {
-    if (!requestedId) return;
-    if (!projects.some((project) => project.id === requestedId)) return;
-    clearedByUser.current = false;
-    setSelectedId(requestedId);
-    setFilter("all");
-  }, [requestedId, projects]);
-
-  // ただし「戻る」で意図的に外した直後は割り込まない。
-  useEffect(() => {
-    if (selectedId && projects.some((project) => project.id === selectedId)) return;
-    if (clearedByUser.current) return;
-    setSelectedId(visible[0]?.id ?? null);
-  }, [visible, projects, selectedId]);
-
-  const selected = projects.find((project) => project.id === selectedId) ?? null;
-
-  const selectProject = (id: string | null) => {
-    clearedByUser.current = id === null;
-    setSelectedId(id);
-  };
+    if (legacyProjectId) router.replace(`/projects/${legacyProjectId}`);
+  }, [legacyProjectId, router]);
 
   const handleCreate = async () => {
     const created = await createProject({ name: "" });
-    if (created) {
-      selectProject(created.id);
-      if (requestedId) router.replace("/projects");
-    }
+    if (created) router.push(`/projects/${created.id}`);
   };
 
   if (status === "unconfigured") {
@@ -99,46 +74,20 @@ export function ProjectsWorkspace() {
     );
   }
 
-  return (
-    <div className="grid min-h-0 flex-1 md:grid-cols-[minmax(280px,360px)_1fr]">
-      <div className={`min-h-0 min-w-0 ${selected ? "hidden md:flex md:flex-col" : "flex flex-col"}`}>
-        <ProjectsList
-          projects={visible}
-          selectedId={selectedId}
-          query={query}
-          onQueryChange={setQuery}
-          filter={filter}
-          onFilterChange={setFilter}
-          onSelect={selectProject}
-          onCreate={() => void handleCreate()}
-        />
-      </div>
+  if (legacyProjectId) {
+    return <Message title="読み込み中…">プロジェクトを開いています。</Message>;
+  }
 
-      <div className={`min-h-0 min-w-0 ${selected ? "flex flex-col" : "hidden md:flex md:flex-col"}`}>
-        {selected ? (
-          <>
-            <button
-              type="button"
-              onClick={() => selectProject(null)}
-              className="cursor-pointer border-b border-[var(--color-line)] bg-white px-4 py-2 text-left text-[13px] text-[var(--color-ink-muted)] md:hidden"
-            >
-              ← 一覧に戻る
-            </button>
-            <ProjectDetail key={selected.id} project={selected} />
-          </>
-        ) : (
-          <div className="flex flex-1 items-center justify-center bg-white px-6 py-10">
-            <div className="max-w-[38ch] text-center">
-              <p className="text-[15px] font-medium text-[var(--color-ink)]">
-                プロジェクトを選ぶか、新しく作成します
-              </p>
-              <p className="mt-2 text-[13px] leading-6 text-[var(--color-ink-muted)]">
-                クライアント名・使用システム・進捗を記録し、関連メモをその場に紐づけられます。
-              </p>
-            </div>
-          </div>
-        )}
-      </div>
+  return (
+    <div className="flex min-h-0 flex-1 flex-col">
+      <ProjectsList
+        projects={visible}
+        query={query}
+        onQueryChange={setQuery}
+        filter={filter}
+        onFilterChange={setFilter}
+        onCreate={() => void handleCreate()}
+      />
     </div>
   );
 }

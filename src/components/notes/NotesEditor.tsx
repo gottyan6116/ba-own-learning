@@ -253,7 +253,7 @@ function AssociationBar({
 
       {note.project_id && (
         <Link
-          href={`/projects?project=${note.project_id}`}
+          href={`/projects/${note.project_id}`}
           className="text-[13px] text-[var(--color-zenith)] underline-offset-2 hover:underline"
         >
           プロジェクトを開く →
