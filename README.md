@@ -19,7 +19,8 @@ Business Process → System Category → Product / Solution → Detailed Knowled
 | 主機能 A | **Knowledge Map** — 6つの業務領域 × システムカテゴリ × 代表製品を1枚の格子で表示。カテゴリ／製品はページ遷移せずモーダルで開く |
 | 主機能 B | **Notes** — OneNote 風の3ペイン。学習メモを書き、検索し、業務領域／システム／製品に紐づける |
 | 接続 | Knowledge ←→ Notes は双方向。`MA` に紐づけたメモは MA のモーダルにも出る。モーダルからその場でメモを追加できる |
-| データ | Knowledge Map のマスターは **リポジトリ内の TypeScript**（Git で履歴が追える）。Supabase に入れるのは **Personal Notes だけ** |
+| 主機能 C | **Learning** — 自由文で書いた学習メモを Cloudflare Workers AI が構造化し、フロー／比較／要約のいずれかに可視化して保存する |
+| データ | Knowledge Map のマスターは **リポジトリ内の TypeScript**（Git で履歴が追える）。Supabase に入れるのは **個人データ（notes / projects / learning_pages）だけ** |
 
 ### 設計上の優先順位
 
@@ -126,8 +127,17 @@ npm run dev
 ## 5. Supabase setup
 
 1. [supabase.com](https://supabase.com) でプロジェクトを作る（Free Plan で足りる）。
-2. **SQL Editor** を開き、`supabase/migrations/20260820000000_create_notes.sql` の中身を貼って実行する。
-   `notes` テーブル・インデックス・`updated_at` トリガー・RLS ポリシーがまとめて作られる。
+2. **SQL Editor** を開き、`supabase/migrations/` の SQL を**ファイル名順に**貼って実行する。
+   それぞれテーブル・インデックス・`updated_at` トリガー・RLS ポリシーがまとめて作られる。
+
+   | 順 | ファイル | 作られるもの |
+   |---|---|---|
+   | 1 | `20260820000000_create_notes.sql` | `notes` |
+   | 2 | `20260821000000_create_projects.sql` | `projects` と `notes.project_id` |
+   | 3 | `20260822000000_create_learning_pages.sql` | `learning_pages` |
+
+   3 は 1・2 で作られる `set_updated_at()` 関数と `projects` / `notes` を参照するので、
+   順番を飛ばすと失敗する。
 3. **Authentication → Sign In / Providers → Email** で、Email を有効にする。
    ログインはメール＋パスワード方式（`Confirm email` はどちらでもよい）。
 
@@ -170,9 +180,23 @@ npm run dev
 |---|---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase プロジェクト URL | する（RLS で保護） |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | anon / publishable キー | する（RLS で保護） |
-| `NEXT_PUBLIC_SITE_URL` | マジックリンクの戻り先 | する |
+| `NEXT_PUBLIC_SITE_URL` | ログイン後の戻り先 | する |
+| `CLOUDFLARE_ACCOUNT_ID` | Workers AI のアカウント | **しない（server 専用）** |
+| `CLOUDFLARE_API_TOKEN` | Workers AI の API トークン | **しない（server 専用）** |
 
 `service_role` キーはこのアプリでは一切使わない。`.env.local` に置かないこと。
+
+Cloudflare の2つには **`NEXT_PUBLIC_` を付けてはいけない**。付けるとブラウザのバンドルに
+埋め込まれ、トークンが公開される。呼び出しは `src/app/api/learning/generate/route.ts`
+（server）からのみ行い、`src/lib/ai/cloudflare.ts` はブラウザから import されると
+実行時に例外を投げるようにしてある。
+
+ビルド後に漏れていないことを確認するには:
+
+```bash
+npm run build
+grep -rl "$CLOUDFLARE_API_TOKEN" .next/static/   # 何も出なければ OK
+```
 
 Vercel では **Project Settings → Environment Variables** に同じ3つを設定する
 （`NEXT_PUBLIC_SITE_URL` は本番ドメイン）。

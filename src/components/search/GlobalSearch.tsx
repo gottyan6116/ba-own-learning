@@ -7,6 +7,7 @@ import { searchKnowledge, type SearchResult } from "@/lib/knowledge/search";
 import { useKnowledgeView } from "@/lib/knowledge/KnowledgeViewProvider";
 import { useNotes } from "@/lib/notes/NotesProvider";
 import { useProjects } from "@/lib/projects/ProjectsProvider";
+import { useLearning } from "@/lib/learning/LearningProvider";
 import { areaClass } from "@/components/ui/primitives";
 import { getBusinessArea } from "@/data";
 
@@ -16,6 +17,7 @@ const KIND_LABEL: Record<SearchResult["kind"], string> = {
   product: "製品",
   note: "メモ",
   project: "プロジェクト",
+  learning: "Learning",
 };
 
 /**
@@ -29,12 +31,13 @@ export function GlobalSearch() {
   const [activeIndex, setActiveIndex] = useState(0);
   const { notes } = useNotes();
   const { projects } = useProjects();
+  const { pages: learningPages } = useLearning();
   const { openSystem, openProduct } = useKnowledgeView();
   const router = useRouter();
 
   const results = useMemo(
-    () => searchKnowledge(query, notes, projects),
-    [query, notes, projects],
+    () => searchKnowledge(query, notes, projects, learningPages),
+    [query, notes, projects, learningPages],
   );
 
   useEffect(() => setActiveIndex(0), [query]);
@@ -57,6 +60,7 @@ export function GlobalSearch() {
     if (result.kind === "product") return openProduct(result.id);
     if (result.kind === "note") return router.push(`/notes?note=${result.id}`);
     if (result.kind === "project") return router.push(`/projects?project=${result.id}`);
+    if (result.kind === "learning") return router.push(`/learning?page=${result.id}`);
     // 業務領域はマップ上の位置そのものなので、トップへ戻して該当列へ飛ばす
     router.push(`/#area-${result.id}`);
   };

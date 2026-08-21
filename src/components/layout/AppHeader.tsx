@@ -6,11 +6,13 @@ import { GlobalSearch } from "@/components/search/GlobalSearch";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { useNotes } from "@/lib/notes/NotesProvider";
 import { useProjects } from "@/lib/projects/ProjectsProvider";
+import { useLearning } from "@/lib/learning/LearningProvider";
 
 const NAV = [
   { href: "/", label: "Knowledge Map" },
   { href: "/projects", label: "プロジェクト" },
   { href: "/notes", label: "Notes" },
+  { href: "/learning", label: "Learning" },
 ];
 
 /**
@@ -25,10 +27,12 @@ export function AppHeader() {
   const { status, user, signOut } = useAuth();
   const { notes } = useNotes();
   const { projects } = useProjects();
+  const { pages: learningPages } = useLearning();
 
   const countFor = (href: string) => {
     if (href === "/notes") return notes.length;
     if (href === "/projects") return projects.length;
+    if (href === "/learning") return learningPages.length;
     return 0;
   };
 
@@ -115,10 +119,13 @@ export function AppHeader() {
         </div>
       </div>
 
-      {/* 幅の足りない端末では、ナビだけ2段目に置く */}
+      {/* 幅の足りない端末では、ナビだけ2段目に置く。
+          項目が増えると 375px では収まらないので横スクロールさせる
+          （html/body が overflow-x: clip なので、ここで持たないと
+          はみ出した項目に触れなくなる）。 */}
       <nav
         aria-label="メイン（狭い画面）"
-        className="flex items-center gap-1 border-t border-[var(--color-line-faint)] px-2 sm:hidden"
+        className="scroll-area flex items-center gap-1 overflow-x-auto border-t border-[var(--color-line-faint)] px-2 sm:hidden"
       >
         {navLinks}
       </nav>

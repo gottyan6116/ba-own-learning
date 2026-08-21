@@ -9,6 +9,8 @@ import type { Note } from "@/lib/notes/types";
 import { noteTitleOrFallback } from "@/lib/notes/types";
 import type { Project } from "@/lib/projects/types";
 import { projectNameOrFallback } from "@/lib/projects/types";
+import type { LearningPage, VisualizationType } from "@/lib/learning/types";
+import { VISUALIZATION_LABEL, learningTitleOrFallback, readStringArray } from "@/lib/learning/types";
 
 /**
  * Global Search。
@@ -18,7 +20,7 @@ import { projectNameOrFallback } from "@/lib/projects/types";
  * （データが数千件を超えたら Supabase 側の全文検索へ寄せる）
  */
 
-export type SearchResultKind = "area" | "system" | "product" | "note" | "project";
+export type SearchResultKind = "area" | "system" | "product" | "note" | "project" | "learning";
 
 export interface SearchResult {
   kind: SearchResultKind;
@@ -69,6 +71,7 @@ export function searchKnowledge(
   rawQuery: string,
   notes: Note[] = [],
   projects: Project[] = [],
+  learningPages: LearningPage[] = [],
 ): SearchResult[] {
   const query = normalize(rawQuery.trim());
   if (query.length === 0) return [];
@@ -170,6 +173,29 @@ export function searchKnowledge(
         subtitle: project.client || "プロジェクト",
         areaId: project.business_area,
         score: score + 5, // 自分の案件は少し優先する
+      });
+    }
+  }
+
+  for (const page of learningPages) {
+    const score = best(query, [
+      [page.title, 1.1],
+      [page.summary, 0.5],
+      [readStringArray(page.key_points).join(" "), 0.4],
+      [readStringArray(page.related_concepts).join(" "), 0.4],
+    ]);
+    if (score > 0) {
+      results.push({
+        kind: "learning",
+        id: page.id,
+        title: learningTitleOrFallback(page),
+        // kind バッジ側に既に「LEARNING」と出るので、ここでは重ねず
+        // 可視化タイプ（フロー/比較/要約）を出す方が実際に役立つ情報になる
+        subtitle:
+          VISUALIZATION_LABEL[page.visualization_type as VisualizationType] ??
+          page.visualization_type,
+        areaId: page.business_area,
+        score: score + 5, // 自分が構造化したものは少し優先する
       });
     }
   }

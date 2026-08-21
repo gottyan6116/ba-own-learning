@@ -14,10 +14,13 @@ import { useNotes } from "@/lib/notes/NotesProvider";
 import { notesForProduct } from "@/lib/notes/relations";
 import { useProjects } from "@/lib/projects/ProjectsProvider";
 import { projectsForProduct } from "@/lib/projects/relations";
+import { useLearning } from "@/lib/learning/LearningProvider";
+import { learningForProduct } from "@/lib/learning/relations";
 import { BrandLogo } from "@/components/ui/BrandLogo";
 import { Chip, Section, TermList } from "@/components/ui/primitives";
 import { RelatedNotes } from "./RelatedNotes";
 import { RelatedProjects } from "./RelatedProjects";
+import { RelatedLearning } from "./RelatedLearning";
 import { ModalHeader } from "./ModalHeader";
 
 export function ProductDetail({ productId }: { productId: string }) {
@@ -25,6 +28,7 @@ export function ProductDetail({ productId }: { productId: string }) {
   const { pushProduct, pushSystem, back, stack } = useKnowledgeView();
   const { notes } = useNotes();
   const { status: projectsStatus, projects } = useProjects();
+  const { status: learningStatus, pages: learningPages } = useLearning();
 
   if (!product) {
     return (
@@ -43,6 +47,7 @@ export function ProductDetail({ productId }: { productId: string }) {
   const primaryArea = areas[0]?.id ?? null;
   const related = notesForProduct(notes, product.id);
   const relatedProjects = projectsForProduct(projects, product.id);
+  const relatedLearning = learningForProduct(learningPages, product.id);
 
   const previous = stack.length > 1 ? stack[stack.length - 2] : null;
   const previousLabel = previous
@@ -153,6 +158,22 @@ export function ProductDetail({ productId }: { productId: string }) {
             <RelatedProjects
               projects={relatedProjects}
               emptyLabel={`${product.name} を使っているプロジェクトはまだありません。`}
+            />
+          </Section>
+        )}
+
+        {learningStatus === "ready" && (
+          <Section
+            title="Related Learning"
+            aside={
+              <span className="tabular text-[12px] text-[var(--color-ink-muted)]">
+                {relatedLearning.length} 件
+              </span>
+            }
+          >
+            <RelatedLearning
+              pages={relatedLearning}
+              emptyLabel={`${product.name} に紐づく Learning はまだありません。`}
             />
           </Section>
         )}

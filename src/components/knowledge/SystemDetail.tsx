@@ -14,10 +14,13 @@ import { useNotes } from "@/lib/notes/NotesProvider";
 import { notesForSystem } from "@/lib/notes/relations";
 import { useProjects } from "@/lib/projects/ProjectsProvider";
 import { projectsForSystem } from "@/lib/projects/relations";
+import { useLearning } from "@/lib/learning/LearningProvider";
+import { learningForSystem } from "@/lib/learning/relations";
 import { BrandLogo } from "@/components/ui/BrandLogo";
 import { Chip, Section, TermList } from "@/components/ui/primitives";
 import { RelatedNotes } from "./RelatedNotes";
 import { RelatedProjects } from "./RelatedProjects";
+import { RelatedLearning } from "./RelatedLearning";
 import { ModalHeader } from "./ModalHeader";
 
 export function SystemDetail({ systemId }: { systemId: string }) {
@@ -25,6 +28,7 @@ export function SystemDetail({ systemId }: { systemId: string }) {
   const { pushProduct, pushSystem, back, stack } = useKnowledgeView();
   const { notes } = useNotes();
   const { status: projectsStatus, projects } = useProjects();
+  const { status: learningStatus, pages: learningPages } = useLearning();
 
   if (!system) {
     return (
@@ -41,6 +45,7 @@ export function SystemDetail({ systemId }: { systemId: string }) {
   const products = getProductsForSystem(system.id);
   const related = notesForSystem(notes, system.id);
   const relatedProjects = projectsForSystem(projects, system.id);
+  const relatedLearning = learningForSystem(learningPages, system.id);
 
   const previous = stack.length > 1 ? stack[stack.length - 2] : null;
   const previousLabel = previous
@@ -176,6 +181,22 @@ export function SystemDetail({ systemId }: { systemId: string }) {
             <RelatedProjects
               projects={relatedProjects}
               emptyLabel={`${system.shortName} を使っているプロジェクトはまだありません。`}
+            />
+          </Section>
+        )}
+
+        {learningStatus === "ready" && (
+          <Section
+            title="Related Learning"
+            aside={
+              <span className="tabular text-[12px] text-[var(--color-ink-muted)]">
+                {relatedLearning.length} 件
+              </span>
+            }
+          >
+            <RelatedLearning
+              pages={relatedLearning}
+              emptyLabel={`${system.shortName} に紐づく Learning はまだありません。`}
             />
           </Section>
         )}

@@ -135,11 +135,11 @@ export function NotesWorkspace() {
       </div>
 
       <div className="grid min-h-0 flex-1 md:grid-cols-[minmax(180px,220px)_minmax(260px,340px)_1fr]">
-        <div className="hidden min-h-0 md:block">
+        <div className="hidden min-h-0 min-w-0 md:block">
           <NotesSidebar notes={notes} active={filter} onSelect={setFilter} />
         </div>
 
-        <div className={`min-h-0 ${selected ? "hidden md:flex md:flex-col" : "flex flex-col"}`}>
+        <div className={`min-h-0 min-w-0 ${selected ? "hidden md:flex md:flex-col" : "flex flex-col"}`}>
           <NotesList
             notes={visible}
             selectedId={selectedId}
@@ -150,7 +150,7 @@ export function NotesWorkspace() {
           />
         </div>
 
-        <div className={`min-h-0 ${selected ? "flex flex-col" : "hidden md:flex md:flex-col"}`}>
+        <div className={`min-h-0 min-w-0 ${selected ? "flex flex-col" : "hidden md:flex md:flex-col"}`}>
           {selected ? (
             <>
               <button

@@ -101,7 +101,7 @@ export function ProjectsWorkspace() {
 
   return (
     <div className="grid min-h-0 flex-1 md:grid-cols-[minmax(280px,360px)_1fr]">
-      <div className={`min-h-0 ${selected ? "hidden md:flex md:flex-col" : "flex flex-col"}`}>
+      <div className={`min-h-0 min-w-0 ${selected ? "hidden md:flex md:flex-col" : "flex flex-col"}`}>
         <ProjectsList
           projects={visible}
           selectedId={selectedId}
@@ -114,7 +114,7 @@ export function ProjectsWorkspace() {
         />
       </div>
 
-      <div className={`min-h-0 ${selected ? "flex flex-col" : "hidden md:flex md:flex-col"}`}>
+      <div className={`min-h-0 min-w-0 ${selected ? "flex flex-col" : "hidden md:flex md:flex-col"}`}>
         {selected ? (
           <>
             <button

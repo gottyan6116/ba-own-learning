@@ -166,6 +166,34 @@ body {
   scrollbar-color: var(--color-line-strong) transparent;
 }
 
+/*
+ * 横スクロールできる表に「まだ続きがある」ことを示す極めて控えめな合図。
+ * JS 不要（scrollWidth の比較をしない）。background-attachment の
+ * local / scroll の差を使い、両端のグラデーションを実際のスクロール位置に
+ * 追従させる古典的な CSS 手法（俗に "scroll shadows"）。
+ * スクロール端に達すると、その側の陰影は自然に消える。
+ * 背景は白地専用（下地色が変わる場所では使わない）。
+ */
+.scroll-shadow-x {
+  background-image:
+    linear-gradient(to right, var(--color-surface) 30%, transparent),
+    linear-gradient(to left, var(--color-surface) 30%, transparent),
+    linear-gradient(to right, rgb(20 24 29 / 0.08), transparent),
+    linear-gradient(to left, rgb(20 24 29 / 0.08), transparent);
+  background-position:
+    left center,
+    right center,
+    left center,
+    right center;
+  background-repeat: no-repeat;
+  background-size:
+    24px 100%,
+    24px 100%,
+    8px 100%,
+    8px 100%;
+  background-attachment: local, local, scroll, scroll;
+}
+
 /* エディタのタイトル・本文は面積が大きいため、枠でフォーカスを示すと騒がしい。
    左端の細いバーで示す（キャレットだけに頼らず、可視のインジケータは残す）。 */
 .editor-field:focus-visible {
@@ -248,11 +276,34 @@ body {
   animation: panel-swap 160ms var(--ease-out-soft);
 }
 
+/*
+ * AI 生成中の「動いている」合図。進捗は取得できないので割合は出さない
+ * （fake progress 禁止）。indeterminate な帯が往復するだけの、抑えた表現。
+ */
+@keyframes loading-bar-sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(400%);
+  }
+}
+
+.loading-bar-fill {
+  animation: loading-bar-sweep 1.4s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .modal-overlay[data-state],
   .modal-panel[data-state],
-  .panel-swap {
+  .panel-swap,
+  .loading-bar-fill {
     animation: none !important;
+  }
+  /* 動きを止めても「作業中」だと分かるよう、静止表示に切り替える */
+  .loading-bar-fill {
+    width: 100% !important;
+    opacity: 0.5;
   }
   *,
   *::before,

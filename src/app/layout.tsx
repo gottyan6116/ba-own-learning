@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "@/lib/auth/AuthProvider";
 import { NotesProvider } from "@/lib/notes/NotesProvider";
 import { ProjectsProvider } from "@/lib/projects/ProjectsProvider";
+import { LearningProvider } from "@/lib/learning/LearningProvider";
 import { KnowledgeViewProvider } from "@/lib/knowledge/KnowledgeViewProvider";
 import { KnowledgeModal } from "@/components/knowledge/KnowledgeModal";
 import { AppHeader } from "@/components/layout/AppHeader";
@@ -39,25 +40,39 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ja" className={`${inter.variable} ${notoSansJP.variable}`}>
-      <body className="min-h-dvh">
+      <body className="h-dvh">
         <AuthProvider>
           <NotesProvider>
             <ProjectsProvider>
-              <KnowledgeViewProvider>
+              <LearningProvider>
+                <KnowledgeViewProvider>
                 <a
                   href="#main"
                   className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-3 focus:z-50 focus:rounded-[4px] focus:bg-[var(--color-ink)] focus:px-3 focus:py-2 focus:text-[13px] focus:text-white"
                 >
                   メインコンテンツへスキップ
                 </a>
-                <div className="flex min-h-dvh flex-col">
+                {/*
+                  h-dvh（min- ではなく固定）が要。Notes / Projects / Learning は
+                  内側の 1 ペインだけを overflow-y-auto でスクロールさせ、
+                  ヘッダーと一覧ペインは画面に固定する設計。祖先チェーンの
+                  どこかが min-height（伸縮の下限だけで上限がない）だと、
+                  flexbox はページ全体を伸ばして中身に合わせてしまい、
+                  内側の overflow-y-auto が一切効かなくなる
+                  （実際に Learning の長い Flow でこの壊れ方を確認した）。
+                  Knowledge Map のような「素直に長いページ」は、
+                  ここが固定高さでも overflow が visible のままなので、
+                  今まで通りページ全体がスクロールする。
+                */}
+                <div className="flex h-dvh flex-col">
                   <AppHeader />
                   <main id="main" className="flex min-h-0 flex-1 flex-col">
                     {children}
                   </main>
                 </div>
                 <KnowledgeModal />
-              </KnowledgeViewProvider>
+                </KnowledgeViewProvider>
+              </LearningProvider>
             </ProjectsProvider>
           </NotesProvider>
         </AuthProvider>

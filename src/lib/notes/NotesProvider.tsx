@@ -11,6 +11,7 @@ import {
   type ReactNode,
 } from "react";
 import type { User } from "@supabase/supabase-js";
+import { useAuth } from "@/lib/auth/AuthProvider";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { sortNotes, type Note, type NoteDraft, type NotesStatus, type SaveStatus } from "./types";
@@ -18,12 +19,15 @@ import { sortNotes, type Note, type NoteDraft, type NotesStatus, type SaveStatus
 /**
  * ノートは1箇所で持つ。
  *
- * Notes ページと Knowledge Modal の「関連メモ」が同じ配列を見るため、
- * モーダルで書いたメモが Notes 側に即反映される（この双方向性がこの
+ * Notes ページと Knowledge Modal / Project の「関連メモ」が同じ配列を見るため、
+ * どこで書いたメモも他の画面へ即座に反映される（この双方向性がこの
  * アプリの中心的な価値なので、状態を分けない）。
  *
  * 書き込みはローカル先行（optimistic）。Supabase が失敗したときだけ
  * 保存インジケータをエラーに落とし、ローカルの内容は消さない。
+ *
+ * 認証状態そのものは AuthProvider が一元管理する。ここでは
+ * 「ログイン中の本人に対して notes テーブルをどう読み書きするか」だけを持つ。
  */
 interface NotesContextValue {
   status: NotesStatus;
@@ -41,13 +45,14 @@ interface NotesContextValue {
 
 const NotesContext = createContext<NotesContextValue | null>(null);
 
+type FetchStatus = "idle" | "loading" | "ready" | "error";
+
 export function NotesProvider({ children }: { children: ReactNode }) {
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
-  const [status, setStatus] = useState<NotesStatus>(
-    isSupabaseConfigured ? "loading" : "unconfigured",
-  );
-  const [user, setUser] = useState<User | null>(null);
+  const { status: authStatus, user, signOut } = useAuth();
+
   const [notes, setNotes] = useState<Note[]>([]);
+  const [fetchStatus, setFetchStatus] = useState<FetchStatus>("idle");
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -59,62 +64,35 @@ export function NotesProvider({ children }: { children: ReactNode }) {
     savedTimer.current = setTimeout(() => setSaveStatus("idle"), 1600);
   }, []);
 
-  const fetchNotes = useCallback(
-    async (currentUser: User | null) => {
-      if (!supabase || !currentUser) {
-        setNotes([]);
-        return;
-      }
-      const { data, error } = await supabase
-        .from("notes")
-        .select("*")
-        .order("is_pinned", { ascending: false })
-        .order("updated_at", { ascending: false });
+  const fetchNotes = useCallback(async () => {
+    if (!supabase || !user) {
+      setNotes([]);
+      return;
+    }
+    setFetchStatus("loading");
+    const { data, error } = await supabase
+      .from("notes")
+      .select("*")
+      .order("is_pinned", { ascending: false })
+      .order("updated_at", { ascending: false });
 
-      if (error) {
-        setErrorMessage(error.message);
-        setStatus("error");
-        return;
-      }
-      setNotes(sortNotes(data ?? []));
-      setStatus("ready");
-    },
-    [supabase],
-  );
+    if (error) {
+      setErrorMessage(error.message);
+      setFetchStatus("error");
+      return;
+    }
+    setNotes(sortNotes(data ?? []));
+    setFetchStatus("ready");
+  }, [supabase, user]);
 
   useEffect(() => {
-    if (!supabase) return;
-    let active = true;
-
-    supabase.auth.getUser().then(({ data }) => {
-      if (!active) return;
-      const nextUser = data.user ?? null;
-      setUser(nextUser);
-      if (!nextUser) {
-        setStatus("signed-out");
-        setNotes([]);
-        return;
-      }
-      void fetchNotes(nextUser);
-    });
-
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      const nextUser = session?.user ?? null;
-      setUser(nextUser);
-      if (!nextUser) {
-        setStatus("signed-out");
-        setNotes([]);
-        return;
-      }
-      setStatus("loading");
-      void fetchNotes(nextUser);
-    });
-
-    return () => {
-      active = false;
-      sub.subscription.unsubscribe();
-    };
-  }, [supabase, fetchNotes]);
+    if (authStatus !== "signed-in") {
+      setNotes([]);
+      setFetchStatus("idle");
+      return;
+    }
+    void fetchNotes();
+  }, [authStatus, fetchNotes]);
 
   useEffect(() => {
     return () => {
@@ -210,16 +188,20 @@ export function NotesProvider({ children }: { children: ReactNode }) {
   );
 
   const refresh = useCallback(async () => {
-    await fetchNotes(user);
-  }, [fetchNotes, user]);
+    await fetchNotes();
+  }, [fetchNotes]);
 
-  const signOut = useCallback(async () => {
-    if (!supabase) return;
-    await supabase.auth.signOut();
-    setUser(null);
-    setNotes([]);
-    setStatus("signed-out");
-  }, [supabase]);
+  const status: NotesStatus = !isSupabaseConfigured
+    ? "unconfigured"
+    : authStatus === "loading"
+      ? "loading"
+      : authStatus === "signed-out"
+        ? "signed-out"
+        : fetchStatus === "error"
+          ? "error"
+          : fetchStatus === "ready"
+            ? "ready"
+            : "loading";
 
   const value = useMemo<NotesContextValue>(
     () => ({
