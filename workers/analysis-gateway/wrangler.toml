@@ -1,0 +1,11 @@
+name = "ba-own-analysis-gateway"
+main = "src/index.ts"
+compatibility_date = "2026-08-22"
+workers_dev = true
+
+[browser]
+binding = "BROWSER"
+remote = true
+
+[ai]
+binding = "AI"

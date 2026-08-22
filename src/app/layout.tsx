@@ -5,6 +5,7 @@ import { AuthProvider } from "@/lib/auth/AuthProvider";
 import { NotesProvider } from "@/lib/notes/NotesProvider";
 import { ProjectsProvider } from "@/lib/projects/ProjectsProvider";
 import { LearningProvider } from "@/lib/learning/LearningProvider";
+import { FrameworkAnalysesProvider } from "@/lib/frameworks/FrameworkAnalysesProvider";
 import { KnowledgeViewProvider } from "@/lib/knowledge/KnowledgeViewProvider";
 import { KnowledgeModal } from "@/components/knowledge/KnowledgeModal";
 import { AppHeader } from "@/components/layout/AppHeader";
@@ -45,6 +46,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <NotesProvider>
             <ProjectsProvider>
               <LearningProvider>
+                <FrameworkAnalysesProvider>
                 <KnowledgeViewProvider>
                 <a
                   href="#main"
@@ -72,6 +74,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 </div>
                 <KnowledgeModal />
                 </KnowledgeViewProvider>
+                </FrameworkAnalysesProvider>
               </LearningProvider>
             </ProjectsProvider>
           </NotesProvider>

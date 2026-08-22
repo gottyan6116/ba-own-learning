@@ -11,6 +11,7 @@ import { useLearning } from "@/lib/learning/LearningProvider";
 const NAV = [
   { href: "/", label: "Knowledge Map" },
   { href: "/projects", label: "プロジェクト" },
+  { href: "/frameworks", label: "フレームワーク" },
   { href: "/notes", label: "Notes" },
   { href: "/learning", label: "Learning" },
 ];

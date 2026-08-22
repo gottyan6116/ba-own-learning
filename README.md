@@ -20,6 +20,8 @@ Business Process → System Category → Product / Solution → Detailed Knowled
 | 主機能 B | **Notes** — OneNote 風の3ペイン。学習メモを書き、検索し、業務領域／システム／製品に紐づける |
 | 接続 | Knowledge ←→ Notes は双方向。`MA` に紐づけたメモは MA のモーダルにも出る。モーダルからその場でメモを追加できる |
 | 主機能 C | **Learning** — 自由文で書いた学習メモを Cloudflare Workers AI が構造化し、フロー／比較／要約のいずれかに可視化して保存する |
+| 主機能 D | **フレームワーク** — 公開HTTPS URL と補足メモを根拠に、3C／ファイブフォース／SWOT／PESTEL／STP の会社分析を作成・保存し、複数プロジェクトへ紐づける |
+| 主機能 E | **Project Mind Map / Task Board** — 案件ごとの編集可能なマインドマップと、ドラッグ操作できる4列カンバンで案件を整理する |
 | データ | Knowledge Map のマスターは **リポジトリ内の TypeScript**（Git で履歴が追える）。Supabase に入れるのは **個人データ（notes / projects / learning_pages）だけ** |
 
 ### 設計上の優先順位
@@ -92,6 +94,10 @@ src/
     notes/NotesProvider.tsx              メモの単一ストア（Map とモーダルで共有）
     notes/relations.ts                   カテゴリ／製品に紐づくメモの抽出
     supabase/                            client / server / env / types
+    frameworks/                          分析の型・AI結果正規化・永続化・案件紐付け
+    mindmaps/                            React Flow の保存データ検証
+
+  workers/analysis-gateway/              Cloudflare Worker（Browser Run + Workers AI）
 
   middleware.ts              セッション Cookie の更新のみ（認可は RLS が担う）
 
@@ -135,9 +141,12 @@ npm run dev
    | 1 | `20260820000000_create_notes.sql` | `notes` |
    | 2 | `20260821000000_create_projects.sql` | `projects` と `notes.project_id` |
    | 3 | `20260822000000_create_learning_pages.sql` | `learning_pages` |
+   | 4 | `20260822022639_create_framework_analysis_foundation.sql` | `framework_analyses`、プロジェクト紐付け、マインドマップ |
+   | 5 | `20260823000000_create_project_tasks.sql` | `project_tasks`（タスク／ガント共通） |
 
-   3 は 1・2 で作られる `set_updated_at()` 関数と `projects` / `notes` を参照するので、
-   順番を飛ばすと失敗する。
+   3〜5 は 1・2 で作られる `set_updated_at()` 関数と `projects` / `notes` を参照するので、
+   順番を飛ばすと失敗する。すでにタスク画面で `public.project_tasks` が見つからないエラーが
+   出ている場合は、まず 5 を本番SupabaseのSQL Editorで実行する。
 3. **Authentication → Sign In / Providers → Email** で、Email を有効にする。
    ログインはメール＋パスワード方式（`Confirm email` はどちらでもよい）。
 
@@ -183,6 +192,8 @@ npm run dev
 | `NEXT_PUBLIC_SITE_URL` | ログイン後の戻り先 | する |
 | `CLOUDFLARE_ACCOUNT_ID` | Workers AI のアカウント | **しない（server 専用）** |
 | `CLOUDFLARE_API_TOKEN` | Workers AI の API トークン | **しない（server 専用）** |
+| `ANALYSIS_GATEWAY_URL` | Cloudflare分析WorkerのURL | **しない（server 専用）** |
+| `ANALYSIS_GATEWAY_TOKEN` | Vercel→Cloudflare Workerの共有シークレット | **しない（server 専用）** |
 
 `service_role` キーはこのアプリでは一切使わない。`.env.local` に置かないこと。
 
@@ -200,6 +211,22 @@ grep -rl "$CLOUDFLARE_API_TOKEN" .next/static/   # 何も出なければ OK
 
 Vercel では **Project Settings → Environment Variables** に同じ3つを設定する
 （`NEXT_PUBLIC_SITE_URL` は本番ドメイン）。
+
+### フレームワーク分析 Worker
+
+`workers/analysis-gateway/` はVercelとは別にCloudflareへデプロイする。
+
+```bash
+cd workers/analysis-gateway
+npm install
+npx wrangler secret put ANALYSIS_GATEWAY_TOKEN
+npm run deploy
+```
+
+Workerには `AI`（Workers AI）と `BROWSER`（Browser Run）のBindingを設定する。
+上で登録したシークレットと同じ値を、Vercelの `ANALYSIS_GATEWAY_TOKEN` に設定する。
+VercelにはWorker URLを `ANALYSIS_GATEWAY_URL` として登録する。ブラウザにこれらの値を
+渡す `NEXT_PUBLIC_` 接頭辞は付けない。
 
 ---
 
@@ -225,6 +252,7 @@ npm run dev        # 開発サーバー
 npm run lint       # ESLint
 npm run typecheck  # tsc --noEmit
 npm run build      # 本番ビルド
+npm test           # Vitest
 npm run gen:logos  # ベンダーマークの再生成（simple-icons から抽出）
 ```
 

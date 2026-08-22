@@ -1,30 +1,13 @@
+import React from "react";
 import type { VisualizationData } from "@/lib/learning/types";
-import { FlowVisualization } from "./FlowVisualization";
 import { ComparisonVisualization } from "./ComparisonVisualization";
+import { FlowVisualization } from "./FlowVisualization";
 import { SummaryVisualization } from "./SummaryVisualization";
 
-/**
- * 可視化の唯一の入口。
- *
- * AI が返すのは検証済みのデータだけで、HTML でも CSS でもない。
- * どう描くかは常にここから下の React が決める。
- * 型を増やすときは、この switch と types.ts の union に足す。
- */
+/** 保存済み／生成直後の Learning 可視化を型ごとの表示器へ振り分ける。 */
 export function VisualizationRenderer({ data }: { data: VisualizationData | null }) {
-  if (!data) {
-    return (
-      <p className="text-[14px] leading-6 text-[var(--color-ink-muted)]">
-        この Learning には表示できる構造データがありません。
-      </p>
-    );
-  }
-
-  switch (data.type) {
-    case "flow":
-      return <FlowVisualization data={data} />;
-    case "comparison":
-      return <ComparisonVisualization data={data} />;
-    case "summary":
-      return <SummaryVisualization data={data} />;
-  }
+  if (!data) return null;
+  if (data.type === "flow") return <FlowVisualization data={data} />;
+  if (data.type === "comparison") return <ComparisonVisualization data={data} />;
+  return <SummaryVisualization data={data} />;
 }

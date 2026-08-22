@@ -1,3 +1,4 @@
+@import "@xyflow/react/dist/style.css";
 @import "tailwindcss";
 
 /* ==========================================================================
@@ -138,6 +139,22 @@ body {
   font-weight: 600;
   letter-spacing: 0.09em;
   text-transform: uppercase;
+  color: var(--color-ink-muted);
+}
+
+/* 標準フォーム。分析・プロジェクト等で同じ入力階層を保つ。 */
+.field {
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid var(--color-line);
+  border-radius: 4px;
+  background: var(--color-surface);
+  padding: 0 10px;
+  font-size: 14px;
+  color: var(--color-ink);
+}
+
+.field::placeholder {
   color: var(--color-ink-muted);
 }
 

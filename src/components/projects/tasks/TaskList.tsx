@@ -2,12 +2,8 @@
 
 import { useState } from "react";
 import { useProjectTasks } from "@/lib/project-tasks/ProjectTasksProvider";
-import { sortTasks } from "@/lib/project-tasks/types";
-import { TaskRow } from "./TaskRow";
-import { TaskCreateButton } from "./TaskCreateButton";
 import { TaskEditor } from "./TaskEditor";
-
-const COLUMN_HEADERS = ["Task", "Status", "Start – End", "Progress"];
+import { TaskBoard } from "./TaskBoard";
 
 export function TaskList() {
   const { status, tasks, errorMessage } = useProjectTasks();
@@ -24,55 +20,15 @@ export function TaskList() {
     );
   }
 
-  const sorted = sortTasks(tasks);
-  const openTask = sorted.find((task) => task.id === openTaskId) ?? null;
+  const openTask = tasks.find((task) => task.id === openTaskId) ?? null;
 
   return (
-    <div className="scroll-area min-h-0 flex-1 overflow-y-auto bg-white">
-      <div className="mx-auto w-full max-w-[900px] px-5 py-6 sm:px-8">
-        <div className="mb-4 flex items-center justify-between gap-3">
-          <h2 className="text-[16px] font-semibold text-[var(--color-ink)]">タスク</h2>
-          <TaskCreateButton onCreated={setOpenTaskId} />
-        </div>
-
-        {sorted.length === 0 ? (
-          <div className="border-t border-[var(--color-line-faint)] py-8 text-center">
-            <p className="text-[14px] leading-7 text-[var(--color-ink-secondary)]">
-              まだタスクがありません。
-            </p>
-            <p className="mx-auto mt-1 max-w-[36ch] text-[13px] leading-6 text-[var(--color-ink-muted)]">
-              最初のタスクを追加すると、ガントチャート上でスケジュールを管理できます。
-            </p>
-            <div className="mt-4 flex justify-center">
-              <TaskCreateButton onCreated={setOpenTaskId} />
-            </div>
-          </div>
-        ) : (
-          <div className="scroll-area scroll-shadow-x -mx-1 overflow-x-auto px-1">
-            <table className="w-full min-w-[540px] border-collapse text-left">
-              <thead>
-                <tr className="border-b-2 border-[var(--color-rule)]">
-                  {COLUMN_HEADERS.map((label) => (
-                    <th
-                      key={label}
-                      scope="col"
-                      className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-[var(--color-ink-muted)]"
-                    >
-                      {label}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {sorted.map((task) => (
-                  <TaskRow key={task.id} task={task} onOpen={() => setOpenTaskId(task.id)} />
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+    <div className="flex min-h-0 flex-1 flex-col bg-white">
+      <div className="flex items-center justify-between gap-3 border-b border-[var(--color-line)] px-5 py-3 sm:px-6">
+        <h2 className="text-[16px] font-semibold text-[var(--color-ink)]">タスクボード</h2>
+        <span className="text-[12px] text-[var(--color-ink-muted)]">カードをドラッグして状態と順序を変更</span>
       </div>
-
+      <TaskBoard onOpenTask={setOpenTaskId} />
       <TaskEditor
         task={openTask}
         open={openTask !== null}

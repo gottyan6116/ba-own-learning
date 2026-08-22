@@ -20,6 +20,8 @@ export function ProjectDetailTabs({ projectId }: { projectId: string }) {
     { href: `${base}/gantt`, label: "ガント" },
     { href: `${base}/notes`, label: "Notes" },
     { href: `${base}/learning`, label: "Learning" },
+    { href: `${base}/analyses`, label: "分析" },
+    { href: `${base}/mindmap`, label: "マインドマップ" },
   ];
 
   return (

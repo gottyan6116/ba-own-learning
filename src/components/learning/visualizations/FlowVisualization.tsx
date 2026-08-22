@@ -1,3 +1,4 @@
+import React from "react";
 import type { FlowVisualizationData } from "@/lib/learning/types";
 
 /**

@@ -1,3 +1,4 @@
+import React from "react";
 import type { ComparisonVisualizationData } from "@/lib/learning/types";
 
 /**

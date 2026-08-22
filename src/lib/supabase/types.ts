@@ -131,6 +131,76 @@ export type ProjectTaskUpdate = Partial<
   Omit<ProjectTaskRow, "id" | "user_id" | "project_id" | "created_at">
 >;
 
+/** 3c=3C / five_forces=ファイブフォース / swot=SWOT / pestel=PESTEL / stp=STP */
+export type FrameworkType = "3c" | "five_forces" | "swot" | "pestel" | "stp";
+
+export type FrameworkAnalysisRow = {
+  id: string;
+  user_id: string;
+  company_name: string;
+  source_url: string;
+  source_notes: string;
+  /** URL取得時のタイトル・本文要約・取得上の注意など。jsonb のため読み出し側で検証する。 */
+  source_metadata: unknown;
+  framework_type: FrameworkType;
+  /** AI出力。src/lib/frameworks/schemas.ts で検証してから表示する。 */
+  result_data: unknown;
+  model: string | null;
+  source_fetched_at: string | null;
+  generated_at: string;
+  regenerated_from_id: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type FrameworkAnalysisInsert = Omit<
+  FrameworkAnalysisRow,
+  "id" | "created_at" | "updated_at"
+> & {
+  id?: string;
+  created_at?: string;
+  updated_at?: string;
+};
+
+export type FrameworkAnalysisUpdate = Partial<
+  Omit<FrameworkAnalysisRow, "id" | "user_id" | "created_at">
+>;
+
+/** A many-to-many link: one saved analysis can be shown in multiple projects. */
+export type FrameworkAnalysisProjectRow = {
+  framework_analysis_id: string;
+  project_id: string;
+  created_at: string;
+};
+
+export type FrameworkAnalysisProjectInsert = Omit<FrameworkAnalysisProjectRow, "created_at"> & {
+  created_at?: string;
+};
+
+export type FrameworkAnalysisProjectUpdate = never;
+
+/** One persisted React Flow graph per project. JSON is validated by its UI boundary. */
+export type ProjectMindMapRow = {
+  id: string;
+  user_id: string;
+  project_id: string;
+  nodes: unknown;
+  edges: unknown;
+  viewport: unknown;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ProjectMindMapInsert = Omit<ProjectMindMapRow, "id" | "created_at" | "updated_at"> & {
+  id?: string;
+  created_at?: string;
+  updated_at?: string;
+};
+
+export type ProjectMindMapUpdate = Partial<
+  Omit<ProjectMindMapRow, "id" | "user_id" | "project_id" | "created_at">
+>;
+
 export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "12";
@@ -159,6 +229,24 @@ export type Database = {
         Row: ProjectTaskRow;
         Insert: ProjectTaskInsert;
         Update: ProjectTaskUpdate;
+        Relationships: [];
+      };
+      framework_analyses: {
+        Row: FrameworkAnalysisRow;
+        Insert: FrameworkAnalysisInsert;
+        Update: FrameworkAnalysisUpdate;
+        Relationships: [];
+      };
+      framework_analysis_projects: {
+        Row: FrameworkAnalysisProjectRow;
+        Insert: FrameworkAnalysisProjectInsert;
+        Update: FrameworkAnalysisProjectUpdate;
+        Relationships: [];
+      };
+      project_mind_maps: {
+        Row: ProjectMindMapRow;
+        Insert: ProjectMindMapInsert;
+        Update: ProjectMindMapUpdate;
         Relationships: [];
       };
     };

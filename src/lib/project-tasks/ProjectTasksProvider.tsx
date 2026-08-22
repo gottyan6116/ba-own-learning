@@ -13,7 +13,13 @@ import {
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { SaveStatus } from "@/lib/notes/types";
-import { sortTasks, type ProjectTask, type ProjectTaskDraft } from "./types";
+import {
+  reorderTasksForBoard,
+  sortTasks,
+  type ProjectTask,
+  type ProjectTaskDraft,
+  type ProjectTaskStatus,
+} from "./types";
 
 /**
  * project_tasks は Project 単位で読む。Notes / Projects / Learning と違い、
@@ -33,6 +39,11 @@ interface ProjectTasksContextValue {
   createTask: (draft: ProjectTaskDraft) => Promise<ProjectTask | null>;
   /** 成功時は確定した行、失敗時は null（呼び出し側は元の値へ戻せる）。 */
   updateTask: (id: string, patch: ProjectTaskDraft) => Promise<ProjectTask | null>;
+  moveTask: (
+    id: string,
+    destinationStatus: ProjectTaskStatus,
+    destinationIndex: number,
+  ) => Promise<boolean>;
   deleteTask: (id: string) => Promise<void>;
   refresh: () => Promise<void>;
 }
@@ -165,6 +176,45 @@ export function ProjectTasksProvider({
     [supabase, user, tasks, markSaved],
   );
 
+  const moveTask = useCallback<ProjectTasksContextValue["moveTask"]>(
+    async (id, destinationStatus, destinationIndex) => {
+      const snapshot = tasks;
+      const next = reorderTasksForBoard(tasks, id, destinationStatus, destinationIndex);
+      if (next === tasks) return false;
+
+      const changed = next.filter((task) => {
+        const previous = snapshot.find((item) => item.id === task.id);
+        return previous && (previous.status !== task.status || previous.sort_order !== task.sort_order);
+      });
+      if (changed.length === 0) return true;
+
+      setTasks(next);
+      if (!supabase || !user) return false;
+      setSaveStatus("saving");
+
+      const results = await Promise.all(
+        changed.map((task) =>
+          supabase
+            .from("project_tasks")
+            .update({ status: task.status, sort_order: task.sort_order })
+            .eq("id", task.id),
+        ),
+      );
+      const failure = results.find((result) => result.error);
+      if (failure?.error) {
+        // 複数行更新は途中まで成功しうる。見た目を勝手に残さず、DBの最新値へ同期する。
+        setTasks(snapshot);
+        setSaveStatus("error");
+        setErrorMessage(failure.error.message);
+        void fetchTasks();
+        return false;
+      }
+      markSaved();
+      return true;
+    },
+    [supabase, user, tasks, fetchTasks, markSaved],
+  );
+
   const deleteTask = useCallback<ProjectTasksContextValue["deleteTask"]>(
     async (id) => {
       const snapshot = tasks;
@@ -192,10 +242,21 @@ export function ProjectTasksProvider({
       errorMessage,
       createTask,
       updateTask,
+      moveTask,
       deleteTask,
       refresh,
     }),
-    [fetchStatus, tasks, saveStatus, errorMessage, createTask, updateTask, deleteTask, refresh],
+    [
+      fetchStatus,
+      tasks,
+      saveStatus,
+      errorMessage,
+      createTask,
+      updateTask,
+      moveTask,
+      deleteTask,
+      refresh,
+    ],
   );
 
   return <ProjectTasksContext.Provider value={value}>{children}</ProjectTasksContext.Provider>;
