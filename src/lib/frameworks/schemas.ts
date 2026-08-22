@@ -1,13 +1,15 @@
-import { FRAMEWORK_SECTIONS, type FrameworkAnalysisResult, type FrameworkAnalysisSection, type FrameworkType } from "./types";
+import { FRAMEWORK_SECTIONS, type FrameworkAnalysisResult, type FrameworkAnalysisSection, type FrameworkPriorityAction, type FrameworkType } from "./types";
 
 const MAX_TITLE = 160;
 const MAX_SUMMARY = 2_000;
 const MAX_SECTION_ANALYSIS = 3_000;
+const MAX_KEY_INSIGHT = 300;
 const MAX_EVIDENCE = 8;
 const MAX_EVIDENCE_LENGTH = 500;
 const MAX_RECOMMENDATIONS = 8;
 const MAX_LIMITATIONS = 8;
 const MAX_LIST_ITEM_LENGTH = 500;
+const MAX_ACTIONS = 3;
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
@@ -30,6 +32,27 @@ function stringList(value: unknown, maxItems: number, maxLength: number): string
     if (values.length === maxItems) break;
   }
   return values;
+}
+
+function priorityActions(value: unknown): FrameworkPriorityAction[] {
+  if (!Array.isArray(value)) return [];
+  const actions: FrameworkPriorityAction[] = [];
+  for (const item of value) {
+    const action = asRecord(item);
+    if (!action) continue;
+    const priority = action.priority;
+    if (priority !== "high" && priority !== "medium" && priority !== "low") continue;
+    const normalized = {
+      priority,
+      action: trimmedString(action.action, MAX_LIST_ITEM_LENGTH),
+      whyNow: trimmedString(action.whyNow, MAX_LIST_ITEM_LENGTH),
+      successSignal: trimmedString(action.successSignal, MAX_LIST_ITEM_LENGTH),
+    } as FrameworkPriorityAction;
+    if (!normalized.action || !normalized.whyNow || !normalized.successSignal) continue;
+    actions.push(normalized);
+    if (actions.length === MAX_ACTIONS) break;
+  }
+  return actions;
 }
 
 /**
@@ -63,6 +86,9 @@ export function normalizeFrameworkResult(
         title: definition.title,
         analysis,
         evidence: stringList(section.evidence, MAX_EVIDENCE, MAX_EVIDENCE_LENGTH),
+        ...(trimmedString(section.keyInsight, MAX_KEY_INSIGHT) ? { keyInsight: trimmedString(section.keyInsight, MAX_KEY_INSIGHT) } : {}),
+        ...(stringList(section.implications, 4, MAX_LIST_ITEM_LENGTH).length ? { implications: stringList(section.implications, 4, MAX_LIST_ITEM_LENGTH) } : {}),
+        ...(stringList(section.openQuestions, 4, MAX_LIST_ITEM_LENGTH).length ? { openQuestions: stringList(section.openQuestions, 4, MAX_LIST_ITEM_LENGTH) } : {}),
       });
     }
   }
@@ -73,14 +99,19 @@ export function normalizeFrameworkResult(
 
   if (!title || !executiveSummary || sections.length === 0) return null;
 
+  const strategicThesis = trimmedString(payload.strategicThesis, MAX_SUMMARY);
+  const normalizedPriorityActions = priorityActions(payload.priorityActions);
+
   return {
-    version: 1,
+    version: strategicThesis || normalizedPriorityActions.length ? 2 : 1,
     framework,
     title,
     executiveSummary,
     sections,
     recommendations: stringList(payload.recommendations, MAX_RECOMMENDATIONS, MAX_LIST_ITEM_LENGTH),
     limitations: stringList(payload.limitations, MAX_LIMITATIONS, MAX_LIST_ITEM_LENGTH),
+    ...(strategicThesis ? { strategicThesis } : {}),
+    ...(normalizedPriorityActions.length ? { priorityActions: normalizedPriorityActions } : {}),
   };
 }
 

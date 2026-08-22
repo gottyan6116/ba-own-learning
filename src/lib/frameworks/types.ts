@@ -59,17 +59,29 @@ export interface FrameworkAnalysisSection {
   title: string;
   analysis: string;
   evidence: string[];
+  keyInsight?: string;
+  implications?: string[];
+  openQuestions?: string[];
+}
+
+export interface FrameworkPriorityAction {
+  priority: "high" | "medium" | "low";
+  action: string;
+  whyNow: string;
+  successSignal: string;
 }
 
 /** The validated, renderer-safe subset of an AI response. */
 export interface FrameworkAnalysisResult {
-  version: 1;
+  version: 1 | 2;
   framework: FrameworkType;
   title: string;
   executiveSummary: string;
   sections: FrameworkAnalysisSection[];
   recommendations: string[];
   limitations: string[];
+  strategicThesis?: string;
+  priorityActions?: FrameworkPriorityAction[];
 }
 
 export type FrameworkAnalysis = FrameworkAnalysisRow;

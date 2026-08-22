@@ -68,8 +68,16 @@ describe("analysis result validation", () => {
     const result = {
       title: "分析タイトル",
       executiveSummary: "要約",
-      sections: sections.map((id) => ({ id, analysis: "分析", evidence: ["ソース"] })),
-      recommendations: ["推奨事項"],
+      strategicThesis: "顧客ニーズと自社の提供価値を結び、選ばれる理由を明確にする。",
+      sections: sections.map((id) => ({
+        id,
+        keyInsight: "この論点で最も重要な示唆です。",
+        analysis: "根拠を踏まえた分析です。仮説と事実を混同せず、意思決定に使える解釈を示します。",
+        evidence: ["ソースから確認した事実"],
+        implications: ["次に取るべき行動への示唆"],
+        openQuestions: ["追加で確認すべき論点"],
+      })),
+      priorityActions: [{ priority: "high", action: "最優先の実行事項", whyNow: "今取り組む理由", successSignal: "検証できる成功指標" }],
       limitations: ["制約"],
     };
 
@@ -81,13 +89,14 @@ describe("analysis result validation", () => {
       isValidAnalysisResult("swot", {
         title: "x",
         executiveSummary: "x",
+        strategicThesis: "x",
         sections: [
-          { id: "strengths", analysis: "x", evidence: [] },
-          { id: "weaknesses", analysis: "x", evidence: [] },
-          { id: "opportunities", analysis: "x", evidence: [] },
-          { id: "threats", analysis: "x", evidence: [] },
+          { id: "strengths", keyInsight: "x", analysis: "x", evidence: [], implications: [], openQuestions: [] },
+          { id: "weaknesses", keyInsight: "x", analysis: "x", evidence: [], implications: [], openQuestions: [] },
+          { id: "opportunities", keyInsight: "x", analysis: "x", evidence: [], implications: [], openQuestions: [] },
+          { id: "threats", keyInsight: "x", analysis: "x", evidence: [], implications: [], openQuestions: [] },
         ],
-        recommendations: [],
+        priorityActions: [],
         limitations: [],
         injected: "not allowed",
       }),
@@ -99,12 +108,13 @@ describe("analysis result validation", () => {
       isValidAnalysisResult("3c", {
         title: "x",
         executiveSummary: "x",
+        strategicThesis: "x",
         sections: [
-          { id: "customer", analysis: "x", evidence: [], hidden: "not allowed" },
-          { id: "company", analysis: "x", evidence: [] },
-          { id: "competitors", analysis: "x", evidence: [] },
+          { id: "customer", keyInsight: "x", analysis: "x", evidence: [], implications: [], openQuestions: [], hidden: "not allowed" },
+          { id: "company", keyInsight: "x", analysis: "x", evidence: [], implications: [], openQuestions: [] },
+          { id: "competitors", keyInsight: "x", analysis: "x", evidence: [], implications: [], openQuestions: [] },
         ],
-        recommendations: [],
+        priorityActions: [],
         limitations: [],
       }),
     ).toBe(false);
@@ -115,14 +125,32 @@ describe("analysis result validation", () => {
       isValidAnalysisResult("3c", {
         title: "x",
         executiveSummary: "x",
+        strategicThesis: "x",
         sections: [
-          { id: "company", analysis: "x", evidence: [] },
-          { id: "competitors", analysis: "x", evidence: [] },
-          { id: "customer", analysis: "x", evidence: [] },
+          { id: "company", keyInsight: "x", analysis: "x", evidence: [], implications: [], openQuestions: [] },
+          { id: "competitors", keyInsight: "x", analysis: "x", evidence: [], implications: [], openQuestions: [] },
+          { id: "customer", keyInsight: "x", analysis: "x", evidence: [], implications: [], openQuestions: [] },
         ],
-        recommendations: [],
+        priorityActions: [],
         limitations: [],
       }),
     ).toBe(true);
+  });
+
+  it("rejects a result without decision-ready section fields", () => {
+    expect(
+      isValidAnalysisResult("3c", {
+        title: "x",
+        executiveSummary: "x",
+        strategicThesis: "x",
+        sections: [
+          { id: "customer", analysis: "x", evidence: [] },
+          { id: "company", analysis: "x", evidence: [] },
+          { id: "competitors", analysis: "x", evidence: [] },
+        ],
+        priorityActions: [],
+        limitations: [],
+      }),
+    ).toBe(false);
   });
 });

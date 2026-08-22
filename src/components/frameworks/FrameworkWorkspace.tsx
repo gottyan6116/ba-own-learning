@@ -11,6 +11,7 @@ import {
   type FrameworkType,
 } from "@/lib/frameworks/types";
 import { useProjects } from "@/lib/projects/ProjectsProvider";
+import { AnalysisVisualMap } from "./AnalysisVisualMap";
 
 export function FrameworkWorkspace() {
   const { status, analyses, links, createAnalysis, setLinkedProjects, errorMessage } = useFrameworkAnalyses();
@@ -171,13 +172,19 @@ function AnalysisResult({ analysis, result, projects, linkedProjectIds, onProjec
     </div>
     <p className="mt-2 text-[12px] text-[var(--color-ink-muted)]">取得日時：{analysis.source_fetched_at ? new Date(analysis.source_fetched_at).toLocaleString("ja-JP") : "記録なし"}</p>
     <p className="mt-4 max-w-[60rem] text-[15px] leading-7 text-[var(--color-ink-secondary)]">{result.executiveSummary}</p>
+    <AnalysisVisualMap result={result} />
     <div className="mt-6 space-y-5">
-      {result.sections.map((section) => <section key={section.id} className="border-b border-[var(--color-line-faint)] pb-5"><h3 className="text-[15px] font-semibold text-[var(--color-ink)]">{section.title}</h3><p className="mt-2 whitespace-pre-wrap text-[14px] leading-7 text-[var(--color-ink-secondary)]">{section.analysis}</p>{section.evidence.length > 0 && <ul className="mt-2 list-disc space-y-1 pl-5 text-[12px] leading-6 text-[var(--color-ink-muted)]">{section.evidence.map((item) => <li key={item}>{item}</li>)}</ul>}</section>)}
+      {result.sections.map((section) => <section key={section.id} className="border-b border-[var(--color-line-faint)] pb-5"><h3 className="text-[15px] font-semibold text-[var(--color-ink)]">{section.title}</h3>{section.keyInsight && <p className="mt-2 border-l-2 border-[var(--color-zenith)] pl-3 text-[14px] font-medium leading-6 text-[var(--color-ink)]">結論：{section.keyInsight}</p>}<p className="mt-3 whitespace-pre-wrap text-[14px] leading-7 text-[var(--color-ink-secondary)]">{section.analysis}</p>{section.evidence.length > 0 && <EvidenceList title="確認できた事実" items={section.evidence} />}{section.implications?.length ? <EvidenceList title="戦略的示唆" items={section.implications} emphasis /> : null}{section.openQuestions?.length ? <EvidenceList title="追加で確認する点" items={section.openQuestions} /> : null}</section>)}
     </div>
+    {result.priorityActions?.length ? <PriorityActions actions={result.priorityActions} /> : result.recommendations.length ? <EvidenceList title="推奨アクション" items={result.recommendations} emphasis /> : null}
     <ProjectLinks projects={projects} linkedIds={linkedProjectIds} onChange={onProjectsChange} />
     {result.limitations.length > 0 && <p className="mt-5 text-[12px] leading-6 text-[var(--color-ink-muted)]">注意：{result.limitations.join(" / ")}</p>}
   </section>;
 }
+
+function EvidenceList({ title, items, emphasis = false }: { title: string; items: string[]; emphasis?: boolean }) { return <div className="mt-3"><h4 className="text-[11px] font-semibold tracking-[0.08em] text-[var(--color-ink-muted)]">{title}</h4><ul className={`mt-1.5 list-disc space-y-1 pl-5 text-[12px] leading-6 ${emphasis ? "text-[var(--color-ink-secondary)]" : "text-[var(--color-ink-muted)]"}`}>{items.map((item) => <li key={item}>{item}</li>)}</ul></div>; }
+
+function PriorityActions({ actions }: { actions: NonNullable<FrameworkAnalysisResult["priorityActions"]> }) { const labels = { high: "最優先", medium: "次点", low: "低" } as const; return <section className="mt-6 rounded-[5px] border border-[var(--color-line)] p-4"><h3 className="text-[14px] font-semibold text-[var(--color-ink)]">優先アクション</h3><ol className="mt-3 space-y-4">{actions.map((item, index) => <li key={`${item.priority}-${item.action}`} className="border-l-2 border-[var(--color-zenith)] pl-3"><p className="text-[13px] font-medium text-[var(--color-ink)]"><span className="mr-2 text-[11px] text-[var(--color-zenith)]">{index + 1}. {labels[item.priority]}</span>{item.action}</p><p className="mt-1 text-[12px] leading-6 text-[var(--color-ink-secondary)]">なぜ今：{item.whyNow}</p><p className="text-[12px] leading-6 text-[var(--color-ink-muted)]">成功指標：{item.successSignal}</p></li>)}</ol></section>; }
 
 function ProjectLinks({ projects, linkedIds, onChange }: { projects: Array<{ id: string; name: string }>; linkedIds: string[]; onChange: (ids: string[]) => void }) {
   return <section className="mt-7 border-t border-[var(--color-line)] pt-4"><h3 className="text-[14px] font-semibold text-[var(--color-ink)]">プロジェクトに追加</h3><p className="mt-1 text-[12px] text-[var(--color-ink-muted)]">表示したい案件を複数選択できます。</p><div className="mt-3 grid gap-2 sm:grid-cols-2">{projects.map((project) => { const checked = linkedIds.includes(project.id); return <label key={project.id} className="flex cursor-pointer items-center gap-2 rounded-[4px] border border-[var(--color-line)] px-3 py-2 text-[13px] text-[var(--color-ink-secondary)]"><input type="checkbox" checked={checked} onChange={() => onChange(checked ? linkedIds.filter((id) => id !== project.id) : [...linkedIds, project.id])} />{project.name || "無題のプロジェクト"}</label>; })}</div>{projects.length === 0 && <p className="mt-3 text-[13px] text-[var(--color-ink-muted)]">先にプロジェクトを作成してください。</p>}</section>;
