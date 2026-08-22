@@ -214,7 +214,7 @@ export function isValidAnalysisResult(framework: FrameworkId, value: unknown): v
     typeof result.executiveSummary === "string" &&
     Array.isArray(sections) &&
     sections.length === required.length &&
-    required.every((id, index) => validSection(sections[index], id)) &&
+    required.every((id) => sections.some((section) => validSection(section, id))) &&
     validStringArray(result.recommendations) &&
     validStringArray(result.limitations)
   );

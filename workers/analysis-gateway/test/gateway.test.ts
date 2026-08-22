@@ -109,4 +109,20 @@ describe("analysis result validation", () => {
       }),
     ).toBe(false);
   });
+
+  it("accepts a complete result when the model returns valid sections in a different order", () => {
+    expect(
+      isValidAnalysisResult("3c", {
+        title: "x",
+        executiveSummary: "x",
+        sections: [
+          { id: "company", analysis: "x", evidence: [] },
+          { id: "competitors", analysis: "x", evidence: [] },
+          { id: "customer", analysis: "x", evidence: [] },
+        ],
+        recommendations: [],
+        limitations: [],
+      }),
+    ).toBe(true);
+  });
 });
