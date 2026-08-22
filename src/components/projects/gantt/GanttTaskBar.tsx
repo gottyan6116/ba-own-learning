@@ -12,6 +12,7 @@ import {
 import {
   PROJECT_TASK_STATUS_LABEL,
   taskTitleOrFallback,
+  timelineDates,
   type ProjectTask,
 } from "@/lib/project-tasks/types";
 import { ROW_HEIGHT } from "./ganttLayout";
@@ -58,8 +59,9 @@ export function GanttTaskBar({
   const [draft, setDraft] = useState<{ start: Date; end: Date } | null>(null);
   const drag = useRef<DragState | null>(null);
 
-  const taskStart = parseDate(task.start_date);
-  const taskEnd = parseDate(task.end_date);
+  const dates = timelineDates(task);
+  const taskStart = parseDate(dates.start);
+  const taskEnd = parseDate(dates.end);
   if (!taskStart || !taskEnd) return null;
 
   const displayStart = draft?.start ?? taskStart;

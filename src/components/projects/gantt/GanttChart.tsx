@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useProjectTasks } from "@/lib/project-tasks/ProjectTasksProvider";
-import { isScheduled, sortTasks, taskTitleOrFallback } from "@/lib/project-tasks/types";
+import { isScheduled, sortTasks, taskTitleOrFallback, timelineDates } from "@/lib/project-tasks/types";
 import {
   addDays,
   differenceInDays,
@@ -40,8 +40,8 @@ export function GanttChart({ project }: { project: Project }) {
     const today = parseDate(todayISO())!;
     const projectStart = parseDate(project.start_date);
     const projectEnd = parseDate(project.due_date);
-    const starts = scheduled.map((task) => parseDate(task.start_date));
-    const ends = scheduled.map((task) => parseDate(task.end_date));
+    const starts = scheduled.map((task) => parseDate(timelineDates(task).start));
+    const ends = scheduled.map((task) => parseDate(timelineDates(task).end));
 
     const earliest = minDate(projectStart, today, ...starts) ?? today;
     const latest = maxDate(projectEnd, today, ...ends) ?? today;

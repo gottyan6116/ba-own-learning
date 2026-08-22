@@ -39,6 +39,10 @@ export function GanttToolbar({
         ))}
       </div>
 
+      <p className="hidden text-[12px] text-[var(--color-ink-muted)] md:block">
+        タスクの日程と同期中。バーをクリックして編集、ドラッグ／端の操作で日程を変更できます。
+      </p>
+
       <div className="flex items-center gap-3">
         <SaveIndicator status={saveStatus} />
         <TaskCreateButton onCreated={onTaskCreated} />

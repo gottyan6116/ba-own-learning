@@ -36,7 +36,16 @@ export function taskTitleOrFallback(task: ProjectTask): string {
 }
 
 export function isScheduled(task: ProjectTask): boolean {
-  return task.start_date !== null && task.end_date !== null;
+  return task.start_date !== null || task.end_date !== null;
+}
+
+/**
+ * A task with just one entered date is still useful on the Gantt: render it
+ * as a one-day bar. Resizing that bar later writes the missing end/start date.
+ */
+export function timelineDates(task: ProjectTask): { start: string | null; end: string | null } {
+  const point = task.start_date ?? task.end_date;
+  return { start: task.start_date ?? point, end: task.end_date ?? point };
 }
 
 /** 開始日 → sort_order の順。未スケジュールは最後にまとめる。 */

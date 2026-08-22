@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { groupTasksForBoard, reorderTasksForBoard, type ProjectTask } from "./types";
+import { groupTasksForBoard, isScheduled, reorderTasksForBoard, timelineDates, type ProjectTask } from "./types";
 
 const task = (id: string, status: ProjectTask["status"], sortOrder: number): ProjectTask => ({
   id,
@@ -46,5 +46,14 @@ describe("groupTasksForBoard", () => {
     expect(grouped.in_progress.map((item) => item.id)).toEqual(["in-progress-last"]);
     expect(grouped.blocked).toEqual([]);
     expect(grouped.done.map((item) => item.id)).toEqual(["done"]);
+  });
+});
+
+describe("timelineDates", () => {
+  it("shows a task with only a start date as a one-day Gantt bar", () => {
+    const item = { ...task("dated", "todo", 0), start_date: "2026-08-21" };
+
+    expect(isScheduled(item)).toBe(true);
+    expect(timelineDates(item)).toEqual({ start: "2026-08-21", end: "2026-08-21" });
   });
 });
