@@ -5,9 +5,9 @@ import { getSupabaseServerClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+export const maxDuration = 300;
 
-const GATEWAY_TIMEOUT_MS = 55_000;
+const GATEWAY_TIMEOUT_MS = 295_000;
 
 function fail(code: string, message: string, status: number) {
   return NextResponse.json({ error: { code, message } }, { status });

@@ -201,6 +201,18 @@ export type ProjectMindMapUpdate = Partial<
   Omit<ProjectMindMapRow, "id" | "user_id" | "project_id" | "created_at">
 >;
 
+export type WebMarketingAnalysisRow = {
+  id: string; user_id: string; source_url: string; source_notes: string; source_metadata: unknown; result_data: unknown;
+  model: string | null; source_fetched_at: string | null; generated_at: string; regenerated_from_id: string | null; created_at: string; updated_at: string;
+};
+export type WebMarketingAnalysisInsert = Omit<WebMarketingAnalysisRow, "id" | "created_at" | "updated_at" | "generated_at" | "regenerated_from_id"> & { id?: string; created_at?: string; updated_at?: string; generated_at?: string; regenerated_from_id?: string | null };
+export type WebMarketingAnalysisUpdate = Partial<Omit<WebMarketingAnalysisRow, "id" | "user_id" | "created_at">>;
+export type WebMarketingAnalysisProjectRow = { web_marketing_analysis_id: string; project_id: string; created_at: string };
+export type WebMarketingAnalysisProjectInsert = Omit<WebMarketingAnalysisProjectRow, "created_at"> & { created_at?: string };
+export type ProjectInitiativeRow = { id: string; user_id: string; project_id: string; batch_id: string | null; priority: "high" | "medium" | "low"; title: string; summary: string; rationale: string; success_metric: string; source_analysis_ids: unknown; sort_order: number; created_at: string; updated_at: string };
+export type ProjectInitiativeInsert = Omit<ProjectInitiativeRow, "id" | "created_at" | "updated_at" | "batch_id" | "sort_order"> & { id?: string; created_at?: string; updated_at?: string; batch_id?: string | null; sort_order?: number };
+export type ProjectInitiativeUpdate = Partial<Omit<ProjectInitiativeRow, "id" | "user_id" | "project_id" | "created_at">>;
+
 export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "12";
@@ -249,6 +261,9 @@ export type Database = {
         Update: ProjectMindMapUpdate;
         Relationships: [];
       };
+      web_marketing_analyses: { Row: WebMarketingAnalysisRow; Insert: WebMarketingAnalysisInsert; Update: WebMarketingAnalysisUpdate; Relationships: []; };
+      web_marketing_analysis_projects: { Row: WebMarketingAnalysisProjectRow; Insert: WebMarketingAnalysisProjectInsert; Update: never; Relationships: []; };
+      project_initiatives: { Row: ProjectInitiativeRow; Insert: ProjectInitiativeInsert; Update: ProjectInitiativeUpdate; Relationships: []; };
     };
     Views: { [_ in never]: never };
     Functions: { [_ in never]: never };
