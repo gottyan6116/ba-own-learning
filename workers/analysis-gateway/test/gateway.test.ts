@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import worker, { isValidAnalysisResult, validateAnalysisInput } from "../src/index";
+import worker, { isValidAnalysisResult, remainingAiGenerationTime, validateAnalysisInput } from "../src/index";
 
 const token = "test-shared-token";
 
@@ -152,5 +152,11 @@ describe("analysis result validation", () => {
         limitations: [],
       }),
     ).toBe(false);
+  });
+});
+
+describe("analysis timeout budget", () => {
+  it("gives AI all remaining Worker time after Browser Run completes", () => {
+    expect(remainingAiGenerationTime(0, 60_000)).toBe(228_000);
   });
 });
