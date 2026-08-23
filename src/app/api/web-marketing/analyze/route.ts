@@ -19,9 +19,12 @@ export async function POST(request: NextRequest) {
   const controller = new AbortController(); const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
   try {
     const response = await fetch(gatewayUrl, { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${gatewayToken}` }, body: JSON.stringify({ analysisType: "web_marketing", sourceUrl: body.sourceUrl, notes: body.notes }), cache: "no-store", signal: controller.signal });
-    const payload = await response.json().catch(() => null) as { analysis?: unknown; source?: { url?: string; fetchedAt?: string }; model?: string; error?: { message?: string } } | null;
+    const payload = await response.json().catch(() => null) as { analysis?: unknown; source?: { url?: string; fetchedAt?: string }; model?: string; error?: { code?: string; message?: string } } | null;
     const result = normalizeWebMarketingResult(payload?.analysis);
-    if (!response.ok) return NextResponse.json({ error: { message: payload?.error?.message ?? "ウェブマーケ分析の生成に失敗しました。" } }, { status: response.status || 502 });
+    if (!response.ok) {
+      const isUnusableAiResponse = payload?.error?.code === "AI_RESPONSE_UNUSABLE";
+      return NextResponse.json({ error: { message: isUnusableAiResponse ? "AIの出力を整形できませんでした。内容を補足して再試行してください。" : payload?.error?.message ?? "ウェブマーケ分析の生成に失敗しました。" } }, { status: response.status || 502 });
+    }
     if (!result) {
       console.error("[web-marketing/analyze] Gateway returned a response that failed app validation.");
       return NextResponse.json({ error: { message: "AIの結果に必要な課題または施策が含まれていません。再試行してください。" } }, { status: 502 });

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { normalizeWebMarketingResult } from "../../../src/lib/web-marketing/schemas";
 import worker, { isValidAnalysisResult, isValidWebMarketingResult, remainingAiGenerationTime, validateAnalysisInput } from "../src/index";
 
 const token = "test-shared-token";
@@ -18,6 +19,19 @@ const validInput = {
   framework: "3c",
   notes: "Public company profile",
 };
+
+function validWebMarketingResult() {
+  return {
+    title: "サイト診断",
+    executiveSummary: "概要",
+    currentState: ["現状"],
+    issues: [{ severity: "high", title: "課題", evidence: "根拠", impact: "影響" }],
+    insights: ["示唆"],
+    priorityActions: [{ priority: "high", action: "施策", whyNow: "理由", successSignal: "指標" }],
+    kpis: ["KPI"],
+    openQuestions: ["確認事項"],
+  };
+}
 
 async function expectGatewayError(body: unknown, code: string) {
   const response = await worker.fetch(request(body), { ANALYSIS_GATEWAY_TOKEN: token } as never);
@@ -58,6 +72,34 @@ describe("analysis gateway authentication", () => {
 });
 
 describe("analysis result validation", () => {
+  it("accepts a complete web marketing result in both validation layers", () => {
+    const result = validWebMarketingResult();
+
+    expect(isValidWebMarketingResult(result)).toBe(true);
+    expect(normalizeWebMarketingResult(result)).not.toBeNull();
+  });
+
+  it("rejects a web marketing issue with an empty evidence field", () => {
+    const result = validWebMarketingResult();
+    result.issues[0].evidence = "";
+
+    expect(isValidWebMarketingResult(result)).toBe(false);
+  });
+
+  it("rejects a web marketing action with an empty success signal", () => {
+    const result = validWebMarketingResult();
+    result.priorityActions[0].successSignal = "";
+
+    expect(isValidWebMarketingResult(result)).toBe(false);
+  });
+
+  it("rejects whitespace-only required web marketing fields", () => {
+    const result = validWebMarketingResult();
+    result.title = "   ";
+
+    expect(isValidWebMarketingResult(result)).toBe(false);
+  });
+
   it("rejects a web marketing response without any actionable issues", () => {
     expect(isValidWebMarketingResult({
       title: "サイト診断",

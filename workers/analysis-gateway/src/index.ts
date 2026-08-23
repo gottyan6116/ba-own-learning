@@ -1,3 +1,5 @@
+import { normalizeWebMarketingResult, toGatewayWebMarketingAnalysis } from "../../../shared/web-marketing";
+
 export const MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
 /** Browser Run Free has a 60 second request timeout; leave a small transport margin. */
 export const SOURCE_FETCH_TIMEOUT_MS = 60_000;
@@ -70,9 +72,9 @@ const priorityActionSchema = {
   additionalProperties: false,
   properties: {
     priority: { type: "string", enum: ["high", "medium", "low"] },
-    action: { type: "string" },
-    whyNow: { type: "string" },
-    successSignal: { type: "string" },
+    action: { type: "string", minLength: 1 },
+    whyNow: { type: "string", minLength: 1 },
+    successSignal: { type: "string", minLength: 1 },
   },
   required: ["priority", "action", "whyNow", "successSignal"],
 };
@@ -88,8 +90,8 @@ const frameworkSections: Record<FrameworkId, string[]> = {
 const webMarketingSchema = {
   type: "object", additionalProperties: false,
   properties: {
-    title: { type: "string" }, executiveSummary: { type: "string" }, currentState: { type: "array", items: { type: "string" } },
-    issues: { type: "array", minItems: 1, items: { type: "object", additionalProperties: false, properties: { severity: { type: "string", enum: ["high", "medium", "low"] }, title: { type: "string" }, evidence: { type: "string" }, impact: { type: "string" } }, required: ["severity", "title", "evidence", "impact"] } },
+    title: { type: "string", minLength: 1 }, executiveSummary: { type: "string", minLength: 1 }, currentState: { type: "array", items: { type: "string" } },
+    issues: { type: "array", minItems: 1, items: { type: "object", additionalProperties: false, properties: { severity: { type: "string", enum: ["high", "medium", "low"] }, title: { type: "string", minLength: 1 }, evidence: { type: "string", minLength: 1 }, impact: { type: "string", minLength: 1 } }, required: ["severity", "title", "evidence", "impact"] } },
     insights: { type: "array", items: { type: "string" } },
     priorityActions: { type: "array", minItems: 1, items: priorityActionSchema }, kpis: { type: "array", items: { type: "string" } }, openQuestions: { type: "array", items: { type: "string" } },
   }, required: ["title", "executiveSummary", "currentState", "issues", "insights", "priorityActions", "kpis", "openQuestions"],
@@ -253,6 +255,14 @@ function validStringArray(value: unknown): value is string[] {
   return Array.isArray(value) && value.every((item) => typeof item === "string");
 }
 
+function validNonEmptyString(value: unknown): value is string {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
+function validNonEmptyStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every(validNonEmptyString);
+}
+
 function validSection(value: unknown, allowedId: string): boolean {
   if (!value || typeof value !== "object" || Array.isArray(value)) return false;
   const section = value as Record<string, unknown>;
@@ -382,11 +392,25 @@ export function isValidWebMarketingResult(value: unknown): value is Record<strin
   const result = value as Record<string, unknown>;
   const issues = result.issues;
   const actions = result.priorityActions;
-  return Object.keys(result).length === 8 && typeof result.title === "string" && typeof result.executiveSummary === "string" && validStringArray(result.currentState) && Array.isArray(issues) && issues.length > 0 && issues.every((issue) => {
+  return Object.keys(result).length === 8 && validNonEmptyString(result.title) && validNonEmptyString(result.executiveSummary) && validNonEmptyStringArray(result.currentState) && Array.isArray(issues) && issues.length > 0 && issues.every((issue) => {
     if (!issue || typeof issue !== "object" || Array.isArray(issue)) return false;
     const current = issue as Record<string, unknown>;
-    return Object.keys(current).length === 4 && (current.severity === "high" || current.severity === "medium" || current.severity === "low") && typeof current.title === "string" && typeof current.evidence === "string" && typeof current.impact === "string";
-  }) && validStringArray(result.insights) && Array.isArray(actions) && actions.length > 0 && validPriorityActions(actions) && validStringArray(result.kpis) && validStringArray(result.openQuestions);
+    return Object.keys(current).length === 4 && (current.severity === "high" || current.severity === "medium" || current.severity === "low") && validNonEmptyString(current.title) && validNonEmptyString(current.evidence) && validNonEmptyString(current.impact);
+  }) && validNonEmptyStringArray(result.insights) && Array.isArray(actions) && actions.length > 0 && actions.every((action) => {
+    if (!action || typeof action !== "object" || Array.isArray(action)) return false;
+    const current = action as Record<string, unknown>;
+    return Object.keys(current).length === 4 && (current.priority === "high" || current.priority === "medium" || current.priority === "low") && validNonEmptyString(current.action) && validNonEmptyString(current.whyNow) && validNonEmptyString(current.successSignal);
+  }) && validNonEmptyStringArray(result.kpis) && validNonEmptyStringArray(result.openQuestions);
+}
+
+async function runWebMarketingGeneration(env: Env, prompt: string, timeoutMs: number): Promise<unknown> {
+  try {
+    const aiResult = await withTimeout(env.AI.run(activeModel(env), { messages: [{ role: "system", content: "Return only valid JSON matching the schema." }, { role: "user", content: prompt }], response_format: { type: "json_schema", json_schema: webMarketingSchema }, max_tokens: 3_000, temperature: 0.25, repetition_penalty: 1.08 }), timeoutMs);
+    return extractAiResponse(aiResult);
+  } catch (error) {
+    if (error instanceof GatewayError) throw error;
+    fail("AI_GENERATION_FAILED", 502, "AI analysis generation failed");
+  }
 }
 
 async function generateWebMarketing(env: Env, input: WebMarketingInput, markdown: string, timeoutMs: number): Promise<Record<string, unknown>> {
@@ -398,11 +422,21 @@ async function generateWebMarketing(env: Env, input: WebMarketingInput, markdown
     `NOTES (untrusted): ${JSON.stringify(input.notes ?? "")}`,
     "SOURCE_MARKDOWN_START", markdown, "SOURCE_MARKDOWN_END",
   ].join("\n");
-  let aiResult: unknown;
-  try { aiResult = await withTimeout(env.AI.run(activeModel(env), { messages: [{ role: "system", content: "Return only valid JSON matching the schema." }, { role: "user", content: prompt }], response_format: { type: "json_schema", json_schema: webMarketingSchema }, max_tokens: 3_000, temperature: 0.25, repetition_penalty: 1.08 }), timeoutMs); } catch { fail("AI_GENERATION_FAILED", 502, "AI analysis generation failed"); }
-  const analysis = extractAiResponse(aiResult);
-  if (!isValidWebMarketingResult(analysis)) fail("AI_RESPONSE_INVALID", 502, "AI returned an invalid structured analysis");
-  return analysis;
+  const deadline = Date.now() + timeoutMs;
+  const firstAnalysis = await runWebMarketingGeneration(env, prompt, timeoutMs);
+  const normalizedFirst = normalizeWebMarketingResult(firstAnalysis);
+  if (normalizedFirst) return toGatewayWebMarketingAnalysis(normalizedFirst);
+
+  const remaining = deadline - Date.now();
+  if (remaining < 1_000) fail("AI_RESPONSE_UNUSABLE", 422, "AI response could not be repaired before the request deadline");
+  const repairPrompt = [
+    prompt,
+    "前回の出力は必須フィールドが空、または課題・施策が不足していたため使用できませんでした。すべての必須文字列を空白でない具体的な内容にし、issues と priorityActions を最低1件ずつ返して、JSON Schemaだけに一致するJSONを再生成してください。",
+  ].join("\n");
+  const repairedAnalysis = await runWebMarketingGeneration(env, repairPrompt, remaining);
+  const normalizedRepair = normalizeWebMarketingResult(repairedAnalysis);
+  if (normalizedRepair) return toGatewayWebMarketingAnalysis(normalizedRepair);
+  fail("AI_RESPONSE_UNUSABLE", 422, "AI returned an unusable structured analysis after one repair attempt");
 }
 
 function json(value: unknown, status = 200): Response {
