@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { normalizeFrameworkResult } from "@/lib/frameworks/schemas";
 import { parseFrameworkAnalysisRequest } from "@/lib/frameworks/request";
+import { resolveAnalysisGatewayUrl } from "@/lib/analysis/gateway-url";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -28,10 +29,10 @@ export async function POST(request: NextRequest) {
     return fail("invalid_input", error instanceof Error ? error.message : "入力を確認してください。", 400);
   }
 
-  const gatewayUrl = process.env.ANALYSIS_GATEWAY_URL;
+  const gatewayUrl = resolveAnalysisGatewayUrl(process.env.ANALYSIS_GATEWAY_URL);
   const gatewayToken = process.env.ANALYSIS_GATEWAY_TOKEN;
   if (!gatewayUrl || !gatewayToken) {
-    return fail("gateway_not_configured", "分析AIの接続設定が未完了です。", 503);
+    return fail("gateway_not_configured", "分析AIの接続設定が未完了または不正です。", 503);
   }
 
   const controller = new AbortController();
