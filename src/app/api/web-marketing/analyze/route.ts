@@ -21,7 +21,11 @@ export async function POST(request: NextRequest) {
     const response = await fetch(gatewayUrl, { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${gatewayToken}` }, body: JSON.stringify({ analysisType: "web_marketing", sourceUrl: body.sourceUrl, notes: body.notes }), cache: "no-store", signal: controller.signal });
     const payload = await response.json().catch(() => null) as { analysis?: unknown; source?: { url?: string; fetchedAt?: string }; model?: string; error?: { message?: string } } | null;
     const result = normalizeWebMarketingResult(payload?.analysis);
-    if (!response.ok || !result) return NextResponse.json({ error: { message: payload?.error?.message ?? "ウェブマーケ分析の生成に失敗しました。" } }, { status: response.status || 502 });
+    if (!response.ok) return NextResponse.json({ error: { message: payload?.error?.message ?? "ウェブマーケ分析の生成に失敗しました。" } }, { status: response.status || 502 });
+    if (!result) {
+      console.error("[web-marketing/analyze] Gateway returned a response that failed app validation.");
+      return NextResponse.json({ error: { message: "AIの結果に必要な課題または施策が含まれていません。再試行してください。" } }, { status: 502 });
+    }
     return NextResponse.json({ result, source: { url: payload?.source?.url ?? body.sourceUrl, fetchedAt: payload?.source?.fetchedAt ?? new Date().toISOString() }, model: payload?.model ?? null });
   } catch (error) { return NextResponse.json({ error: { message: error instanceof Error && error.name === "AbortError" ? "分析AIへの接続がタイムアウトしました。" : "分析AIに接続できませんでした。接続設定を確認してください。" } }, { status: error instanceof Error && error.name === "AbortError" ? 504 : 502 }); } finally { clearTimeout(timer); }
 }

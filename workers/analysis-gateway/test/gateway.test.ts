@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import worker, { isValidAnalysisResult, remainingAiGenerationTime, validateAnalysisInput } from "../src/index";
+import worker, { isValidAnalysisResult, isValidWebMarketingResult, remainingAiGenerationTime, validateAnalysisInput } from "../src/index";
 
 const token = "test-shared-token";
 
@@ -58,6 +58,19 @@ describe("analysis gateway authentication", () => {
 });
 
 describe("analysis result validation", () => {
+  it("rejects a web marketing response without any actionable issues", () => {
+    expect(isValidWebMarketingResult({
+      title: "サイト診断",
+      executiveSummary: "概要",
+      currentState: ["現状"],
+      issues: [],
+      insights: ["示唆"],
+      priorityActions: [{ priority: "high", action: "施策", whyNow: "理由", successSignal: "指標" }],
+      kpis: ["KPI"],
+      openQuestions: ["確認事項"],
+    })).toBe(false);
+  });
+
   it.each([
     ["3c", ["customer", "company", "competitors"]],
     ["five_forces", ["competitive_rivalry", "new_entrants", "supplier_power", "buyer_power", "substitutes"]],
