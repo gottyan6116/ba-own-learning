@@ -119,7 +119,7 @@ export function NotesEditor({ note }: { note: Note }) {
         </div>
       </div>
 
-      <div className="scroll-area min-h-0 flex-1 overflow-y-auto">
+      <div className="scroll-area scrollbar-hidden min-h-0 flex-1 overflow-y-auto">
         <div className="w-full px-5 py-6 sm:px-8">
           {note.title.trim() && (
             <h1 className="tracking-display text-[24px] font-bold leading-tight text-[var(--color-ink)]">
@@ -148,7 +148,7 @@ export function NotesEditor({ note }: { note: Note }) {
             onBlur={flush}
             placeholder="ここから書き始める…&#10;&#10;最初の行がページ名として一覧に表示されます。"
             rows={20}
-            className="editor-field mt-5 min-h-[50dvh] w-full resize-none bg-transparent text-[16px] leading-8 text-[var(--color-ink)] placeholder:text-[var(--color-ink-muted)]"
+            className="editor-field scrollbar-hidden mt-5 min-h-[50dvh] w-full resize-none overflow-y-auto bg-transparent text-[16px] leading-8 text-[var(--color-ink)] placeholder:text-[var(--color-ink-muted)]"
           />
         </div>
       </div>

@@ -183,6 +183,16 @@ body {
   scrollbar-color: var(--color-line-strong) transparent;
 }
 
+/* 書き込みに集中する領域は、操作性を残してスクロールバーのみ隠す。 */
+.scrollbar-hidden {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
+
 /*
  * 横スクロールできる表に「まだ続きがある」ことを示す極めて控えめな合図。
  * JS 不要（scrollWidth の比較をしない）。background-attachment の
