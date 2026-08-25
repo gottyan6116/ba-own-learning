@@ -11,6 +11,7 @@ const task = (id: string, status: ProjectTask["status"], sortOrder: number): Pro
   start_date: null,
   end_date: null,
   progress: 0,
+  bar_color: null,
   sort_order: sortOrder,
   created_at: "2026-08-22T00:00:00.000Z",
   updated_at: "2026-08-22T00:00:00.000Z",

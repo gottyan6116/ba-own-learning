@@ -105,6 +105,7 @@ export type LearningPageUpdate = Partial<
 
 /** todo=未着手 / in_progress=進行中 / blocked=ブロック / done=完了 */
 export type ProjectTaskStatus = "todo" | "in_progress" | "blocked" | "done";
+export type ProjectTaskBarColor = "blue" | "purple" | "green" | "orange" | "red" | "pink";
 
 export type ProjectTaskRow = {
   id: string;
@@ -116,12 +117,18 @@ export type ProjectTaskRow = {
   start_date: string | null;
   end_date: string | null;
   progress: number;
+  /** null のときはステータスに応じた既定色をガントに表示する。 */
+  bar_color: ProjectTaskBarColor | null;
   sort_order: number;
   created_at: string;
   updated_at: string;
 };
 
-export type ProjectTaskInsert = Omit<ProjectTaskRow, "id" | "created_at" | "updated_at"> & {
+export type ProjectTaskInsert = Omit<
+  ProjectTaskRow,
+  "id" | "created_at" | "updated_at" | "bar_color"
+> & {
+  bar_color?: ProjectTaskBarColor | null;
   id?: string;
   created_at?: string;
   updated_at?: string;

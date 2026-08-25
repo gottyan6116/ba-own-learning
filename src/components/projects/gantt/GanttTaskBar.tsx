@@ -11,6 +11,7 @@ import {
 } from "@/lib/project-tasks/dateUtils";
 import {
   PROJECT_TASK_STATUS_LABEL,
+  resolveGanttBarClass,
   taskTitleOrFallback,
   timelineDates,
   type ProjectTask,
@@ -21,13 +22,6 @@ type DragMode = "move" | "resize-start" | "resize-end";
 
 /** ここより小さいピクセル移動は「クリック」として扱う（drag と click を区別する）。 */
 const CLICK_THRESHOLD_PX = 4;
-
-const STATUS_BAR_CLASS: Record<ProjectTask["status"], string> = {
-  todo: "bg-[var(--color-line-strong)]",
-  in_progress: "bg-[var(--color-zenith)]",
-  blocked: "bg-[var(--color-danger)]",
-  done: "bg-[var(--color-ink-muted)]",
-};
 
 interface DragState {
   mode: DragMode;
@@ -154,7 +148,7 @@ export function GanttTaskBar({
         }
       }}
       style={{ left, width, height: ROW_HEIGHT - 16, top: 8, touchAction: "none" }}
-      className={`group absolute cursor-grab select-none rounded-[4px] ${STATUS_BAR_CLASS[task.status]} focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-focus)]`}
+      className={`group absolute cursor-grab select-none rounded-[4px] ${resolveGanttBarClass(task.bar_color, task.status)} focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-focus)]`}
     >
       <div className="flex h-full items-center overflow-hidden px-2">
         <span className="truncate text-[12px] font-medium text-white">

@@ -125,6 +125,7 @@ export function ProjectTasksProvider({
           start_date: draft.start_date ?? null,
           end_date: draft.end_date ?? null,
           progress: draft.progress ?? 0,
+          bar_color: draft.bar_color ?? null,
           sort_order: nextSortOrder,
         })
         .select()

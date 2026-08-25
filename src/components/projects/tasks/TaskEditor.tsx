@@ -4,8 +4,10 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { useEffect, useState } from "react";
 import { useProjectTasks } from "@/lib/project-tasks/ProjectTasksProvider";
 import {
+  GANTT_BAR_COLORS,
   PROJECT_TASK_STATUSES,
   PROJECT_TASK_STATUS_LABEL,
+  type GanttBarColor,
   type ProjectTask,
   type ProjectTaskStatus,
 } from "@/lib/project-tasks/types";
@@ -35,6 +37,7 @@ export function TaskEditor({
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [progress, setProgress] = useState(0);
+  const [barColor, setBarColor] = useState<GanttBarColor | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [dateError, setDateError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -52,6 +55,7 @@ export function TaskEditor({
     setStartDate(task.start_date ?? "");
     setEndDate(task.end_date ?? "");
     setProgress(task.progress);
+    setBarColor(task.bar_color);
     setConfirmDelete(false);
     setDateError(null);
   }, [task]);
@@ -72,6 +76,7 @@ export function TaskEditor({
       start_date: startDate || null,
       end_date: endDate || null,
       progress,
+      bar_color: barColor,
     });
     setBusy(false);
     if (result) onOpenChange(false);
@@ -160,6 +165,29 @@ export function TaskEditor({
                   </div>
                 </Field>
               </div>
+
+              <Field label="ガントの色">
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setBarColor(null)}
+                    aria-pressed={barColor === null}
+                    className={`h-8 cursor-pointer rounded-[4px] border px-2.5 text-[12px] ${barColor === null ? "border-[var(--color-zenith)] bg-[var(--color-surface-selected)] text-[var(--color-zenith)]" : "border-[var(--color-line)] text-[var(--color-ink-secondary)]"}`}
+                  >
+                    ステータス色
+                  </button>
+                  {GANTT_BAR_COLORS.map((color) => (
+                    <button
+                      key={color.value}
+                      type="button"
+                      onClick={() => setBarColor(color.value)}
+                      aria-label={`${color.label}を選択`}
+                      aria-pressed={barColor === color.value}
+                      className={`h-8 w-8 cursor-pointer rounded-full ${color.className} ${barColor === color.value ? "ring-2 ring-[var(--color-focus)] ring-offset-2" : ""}`}
+                    />
+                  ))}
+                </div>
+              </Field>
 
               <div className="grid grid-cols-2 gap-3">
                 <Field label="開始日">

@@ -1,7 +1,25 @@
-import type { ProjectTaskRow, ProjectTaskStatus } from "@/lib/supabase/types";
+import type { ProjectTaskBarColor, ProjectTaskRow, ProjectTaskStatus } from "@/lib/supabase/types";
 
 export type ProjectTask = ProjectTaskRow;
 export type { ProjectTaskStatus };
+export type GanttBarColor = ProjectTaskBarColor;
+
+export const GANTT_BAR_COLORS: Array<{ value: GanttBarColor; label: string; className: string }> = [
+  { value: "blue", label: "青", className: "bg-blue-600" },
+  { value: "purple", label: "紫", className: "bg-violet-600" },
+  { value: "green", label: "緑", className: "bg-emerald-600" },
+  { value: "orange", label: "橙", className: "bg-orange-500" },
+  { value: "red", label: "赤", className: "bg-red-600" },
+  { value: "pink", label: "桃", className: "bg-pink-600" },
+];
+
+const STATUS_GANTT_BAR_CLASS: Record<ProjectTaskStatus, string> = {
+  todo: "bg-[var(--color-line-strong)]", in_progress: "bg-[var(--color-zenith)]", blocked: "bg-[var(--color-danger)]", done: "bg-[var(--color-ink-muted)]",
+};
+
+export function resolveGanttBarClass(color: GanttBarColor | null, status: ProjectTaskStatus): string {
+  return GANTT_BAR_COLORS.find((item) => item.value === color)?.className ?? STATUS_GANTT_BAR_CLASS[status];
+}
 
 export const PROJECT_TASK_STATUSES: ProjectTaskStatus[] = [
   "todo",
@@ -27,6 +45,7 @@ export interface ProjectTaskDraft {
   start_date?: string | null;
   end_date?: string | null;
   progress?: number;
+  bar_color?: GanttBarColor | null;
   sort_order?: number;
 }
 

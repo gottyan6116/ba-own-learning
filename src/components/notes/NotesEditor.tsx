@@ -30,7 +30,6 @@ const AUTOSAVE_DELAY = 700;
 export function NotesEditor({ note }: { note: Note }) {
   const { updateNote, deleteNote, togglePin, saveStatus } = useNotes();
 
-  const [title, setTitle] = useState(note.title);
   const [content, setContent] = useState(note.content);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -38,7 +37,6 @@ export function NotesEditor({ note }: { note: Note }) {
 
   // 選択中のメモが変わったときだけ、ローカルの入力値を差し替える
   useEffect(() => {
-    setTitle(note.title);
     setContent(note.content);
     setConfirmDelete(false);
     dirty.current = false;
@@ -52,20 +50,20 @@ export function NotesEditor({ note }: { note: Note }) {
     };
   }, []);
 
-  const scheduleSave = (patch: { title?: string; content?: string }) => {
+  const scheduleSave = (nextContent: string) => {
     dirty.current = true;
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(() => {
       dirty.current = false;
-      void updateNote(note.id, patch);
+      void updateNote(note.id, { content: nextContent });
     }, AUTOSAVE_DELAY);
   };
 
-  const flush = (patch: { title?: string; content?: string }) => {
+  const flush = () => {
     if (!dirty.current) return;
     if (timer.current) clearTimeout(timer.current);
     dirty.current = false;
-    void updateNote(note.id, patch);
+    void updateNote(note.id, { content });
   };
 
   const area = note.business_area;
@@ -123,37 +121,34 @@ export function NotesEditor({ note }: { note: Note }) {
 
       <div className="scroll-area min-h-0 flex-1 overflow-y-auto">
         <div className="mx-auto w-full max-w-[760px] px-5 py-6 sm:px-8">
-          <label htmlFor="note-title" className="sr-only">
-            タイトル
-          </label>
-          <input
-            id="note-title"
-            value={title}
-            onChange={(event) => {
-              setTitle(event.target.value);
-              scheduleSave({ title: event.target.value });
-            }}
-            onBlur={() => flush({ title })}
-            placeholder="タイトル"
-            className="editor-field tracking-display -ml-3 w-full bg-transparent pl-3 text-[24px] font-bold leading-tight text-[var(--color-ink)] placeholder:text-[var(--color-line-strong)]"
-          />
+          {note.title.trim() && (
+            <h1 className="tracking-display text-[24px] font-bold leading-tight text-[var(--color-ink)]">
+              {note.title}
+            </h1>
+          )}
 
-          <AssociationBar note={note} systems={systemsForSelect} products={productsForSelect} />
+          <details className="mt-3 border-y border-[var(--color-line-faint)] py-2">
+            <summary className="cursor-pointer text-[12px] text-[var(--color-ink-muted)]">
+              整理する（業務領域・案件など）
+            </summary>
+            <AssociationBar note={note} systems={systemsForSelect} products={productsForSelect} />
+          </details>
 
           <label htmlFor="note-body" className="sr-only">
-            本文
+            ノート本文
           </label>
           <textarea
             id="note-body"
+            autoFocus
             value={content}
             onChange={(event) => {
               setContent(event.target.value);
-              scheduleSave({ content: event.target.value });
+              scheduleSave(event.target.value);
             }}
-            onBlur={() => flush({ content })}
-            placeholder="学んだこと、実案件での使われ方、疑問点、次に調べること…"
+            onBlur={flush}
+            placeholder="ここから書き始める…&#10;&#10;最初の行がページ名として一覧に表示されます。"
             rows={20}
-            className="editor-field mt-6 min-h-[50dvh] w-full resize-none bg-transparent pl-3 -ml-3 text-[15px] leading-8 text-[var(--color-ink)] placeholder:text-[var(--color-ink-muted)]"
+            className="editor-field mt-5 min-h-[50dvh] w-full resize-none bg-transparent text-[16px] leading-8 text-[var(--color-ink)] placeholder:text-[var(--color-ink-muted)]"
           />
         </div>
       </div>
