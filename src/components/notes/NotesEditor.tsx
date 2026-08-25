@@ -120,7 +120,7 @@ export function NotesEditor({ note }: { note: Note }) {
       </div>
 
       <div className="scroll-area min-h-0 flex-1 overflow-y-auto">
-        <div className="mx-auto w-full max-w-[760px] px-5 py-6 sm:px-8">
+        <div className="w-full px-5 py-6 sm:px-8">
           {note.title.trim() && (
             <h1 className="tracking-display text-[24px] font-bold leading-tight text-[var(--color-ink)]">
               {note.title}
