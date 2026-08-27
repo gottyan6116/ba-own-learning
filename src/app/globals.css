@@ -221,11 +221,11 @@ body {
   background-attachment: local, local, scroll, scroll;
 }
 
-/* エディタのタイトル・本文は面積が大きいため、枠でフォーカスを示すと騒がしい。
-   左端の細いバーで示す（キャレットだけに頼らず、可視のインジケータは残す）。 */
+/* 本文はOneNoteのようにキャレットだけでフォーカスを示し、装飾線を出さない。 */
+.editor-field:focus,
 .editor-field:focus-visible {
   outline: none;
-  box-shadow: inset 2px 0 0 var(--color-zenith);
+  box-shadow: none;
 }
 
 /* ==========================================================================

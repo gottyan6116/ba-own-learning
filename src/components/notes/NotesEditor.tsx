@@ -12,6 +12,8 @@ import {
   getProductsForSystem,
 } from "@/data";
 import { useNotes } from "@/lib/notes/NotesProvider";
+import { insertAtSelection, noteImageMarkdown } from "@/lib/notes/media";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { Note } from "@/lib/notes/types";
 import { useProjects } from "@/lib/projects/ProjectsProvider";
 import { projectNameOrFallback } from "@/lib/projects/types";
@@ -28,16 +30,25 @@ const AUTOSAVE_DELAY = 700;
  * 保存が終わってもここへ書き戻さない（カーソルが飛ぶため）。
  */
 export function NotesEditor({ note }: { note: Note }) {
-  const { updateNote, deleteNote, togglePin, saveStatus } = useNotes();
+  const { updateNote, deleteNote, togglePin, uploadNoteImage, saveStatus } = useNotes();
 
   const [content, setContent] = useState(note.content);
+  const [title, setTitle] = useState(note.title);
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [isDraggingImage, setIsDraggingImage] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dirty = useRef(false);
+  const bodyRef = useRef<HTMLTextAreaElement | null>(null);
+  const titleRef = useRef<HTMLInputElement | null>(null);
 
   // 選択中のメモが変わったときだけ、ローカルの入力値を差し替える
   useEffect(() => {
     setContent(note.content);
+    setTitle(note.title);
+    setEditingTitle(false);
+    setUploadError(null);
     setConfirmDelete(false);
     dirty.current = false;
     if (timer.current) clearTimeout(timer.current);
@@ -66,6 +77,37 @@ export function NotesEditor({ note }: { note: Note }) {
     void updateNote(note.id, { content });
   };
 
+  const saveTitle = () => {
+    const nextTitle = title.trim();
+    setTitle(nextTitle);
+    setEditingTitle(false);
+    if (nextTitle !== note.title) void updateNote(note.id, { title: nextTitle });
+  };
+
+  const beginTitleEdit = () => {
+    setEditingTitle(true);
+    requestAnimationFrame(() => titleRef.current?.focus());
+  };
+
+  const insertImage = async (file: File) => {
+    setUploadError(null);
+    try {
+      const image = await uploadNoteImage(note.id, file);
+      const target = bodyRef.current;
+      const start = target?.selectionStart ?? content.length;
+      const end = target?.selectionEnd ?? content.length;
+      const result = insertAtSelection(content, start, end, noteImageMarkdown(image.alt, image.path));
+      setContent(result.content);
+      scheduleSave(result.content);
+      requestAnimationFrame(() => {
+        target?.focus();
+        target?.setSelectionRange(result.cursor, result.cursor);
+      });
+    } catch (error) {
+      setUploadError(error instanceof Error ? error.message : "画像を保存できませんでした。");
+    }
+  };
+
   const area = note.business_area;
   const systemsForSelect = area ? getSystemsByArea(area) : systemCategories;
   const productsForSelect = note.system_category
@@ -74,58 +116,43 @@ export function NotesEditor({ note }: { note: Note }) {
 
   return (
     <div className={`${areaClass(area)} flex min-h-0 flex-1 flex-col bg-white`}>
-      <div className="flex items-center justify-between gap-3 border-b border-[var(--color-line)] px-5 py-2.5">
-        <SaveIndicator status={saveStatus} updatedAt={note.updated_at} />
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={() => void togglePin(note.id)}
-            aria-pressed={note.is_pinned}
-            className={`h-9 cursor-pointer rounded-[4px] px-2.5 text-[12px] transition-colors duration-150 ${
-              note.is_pinned
-                ? "bg-[var(--color-surface-selected)] text-[var(--color-zenith)]"
-                : "text-[var(--color-ink-muted)] hover:bg-[var(--color-surface-sunken)]"
-            }`}
-          >
-            {note.is_pinned ? "ピン留め中" : "ピン留め"}
-          </button>
-
-          {confirmDelete ? (
-            <span className="flex items-center gap-1">
-              <button
-                type="button"
-                onClick={() => void deleteNote(note.id)}
-                className="h-9 cursor-pointer rounded-[4px] bg-[var(--color-danger)] px-2.5 text-[12px] font-medium text-white"
-              >
-                削除する
-              </button>
-              <button
-                type="button"
-                onClick={() => setConfirmDelete(false)}
-                className="h-9 cursor-pointer px-2 text-[12px] text-[var(--color-ink-muted)]"
-              >
-                やめる
-              </button>
-            </span>
+      <div className="flex min-h-14 items-center justify-between gap-3 border-b border-[var(--color-line)] px-5 py-2 sm:px-8">
+        <div className="min-w-0 flex-1">
+          {editingTitle ? (
+            <input
+              ref={titleRef}
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+              onBlur={saveTitle}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") saveTitle();
+                if (event.key === "Escape") {
+                  setTitle(note.title);
+                  setEditingTitle(false);
+                }
+              }}
+              aria-label="ノートのタイトル"
+              className="w-full border-0 bg-transparent py-1 text-[21px] font-bold text-[var(--color-ink)] outline-none"
+            />
           ) : (
             <button
               type="button"
-              onClick={() => setConfirmDelete(true)}
-              className="h-9 cursor-pointer rounded-[4px] px-2.5 text-[12px] text-[var(--color-ink-muted)] transition-colors duration-150 hover:bg-[var(--color-danger-tint)] hover:text-[var(--color-danger)]"
+              onDoubleClick={beginTitleEdit}
+              onClick={() => undefined}
+              title="ダブルクリックでタイトルを編集"
+              className="block max-w-full cursor-text truncate py-1 text-left text-[21px] font-bold text-[var(--color-ink)]"
             >
-              削除
+              {title || "無題のメモ"}
             </button>
           )}
         </div>
+        <div className="flex shrink-0 items-center gap-1">
+          <button type="button" onClick={() => void togglePin(note.id)} aria-pressed={note.is_pinned} className="h-8 cursor-pointer px-2 text-[12px] text-[var(--color-ink-muted)] hover:text-[var(--color-zenith)]">{note.is_pinned ? "ピン留め中" : "ピン留め"}</button>
+          <button type="button" onClick={() => { if (window.confirm("このメモを削除しますか？")) void deleteNote(note.id); }} className="h-8 cursor-pointer px-2 text-[12px] text-[var(--color-ink-muted)] hover:text-[var(--color-danger)]">削除</button>
+        </div>
       </div>
-
       <div className="scroll-area scrollbar-hidden min-h-0 flex-1 overflow-y-auto">
         <div className="w-full px-5 py-6 sm:px-8">
-          {note.title.trim() && (
-            <h1 className="tracking-display text-[24px] font-bold leading-tight text-[var(--color-ink)]">
-              {note.title}
-            </h1>
-          )}
 
           <details className="mt-3 border-y border-[var(--color-line-faint)] py-2">
             <summary className="cursor-pointer text-[12px] text-[var(--color-ink-muted)]">
@@ -138,9 +165,29 @@ export function NotesEditor({ note }: { note: Note }) {
             ノート本文
           </label>
           <textarea
+            ref={bodyRef}
             id="note-body"
             autoFocus
             value={content}
+            onPaste={(event) => {
+              const image = Array.from(event.clipboardData.files).find((file) => file.type.startsWith("image/"));
+              if (!image) return;
+              event.preventDefault();
+              void insertImage(image);
+            }}
+            onDragOver={(event) => {
+              if (!Array.from(event.dataTransfer.types).includes("Files")) return;
+              event.preventDefault();
+              setIsDraggingImage(true);
+            }}
+            onDragLeave={() => setIsDraggingImage(false)}
+            onDrop={(event) => {
+              setIsDraggingImage(false);
+              const image = Array.from(event.dataTransfer.files).find((file) => file.type.startsWith("image/"));
+              if (!image) return;
+              event.preventDefault();
+              void insertImage(image);
+            }}
             onChange={(event) => {
               setContent(event.target.value);
               scheduleSave(event.target.value);

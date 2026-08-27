@@ -15,6 +15,7 @@ import { useAuth } from "@/lib/auth/AuthProvider";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { sortNotes, type Note, type NoteDraft, type NotesStatus, type SaveStatus } from "./types";
+import { extensionForImage, noteImagePath, validateNoteImage } from "./media";
 
 /**
  * ノートは1箇所で持つ。
@@ -39,6 +40,7 @@ interface NotesContextValue {
   updateNote: (id: string, patch: NoteDraft) => Promise<void>;
   deleteNote: (id: string) => Promise<void>;
   togglePin: (id: string) => Promise<void>;
+  uploadNoteImage: (noteId: string, file: File) => Promise<{ path: string; alt: string }>;
   refresh: () => Promise<void>;
   signOut: () => Promise<void>;
 }
@@ -187,6 +189,23 @@ export function NotesProvider({ children }: { children: ReactNode }) {
     [notes, updateNote],
   );
 
+  const uploadNoteImage = useCallback<NotesContextValue["uploadNoteImage"]>(
+    async (noteId, file) => {
+      if (!supabase || !user) throw new Error("画像を保存するにはログインが必要です。");
+      const validation = validateNoteImage(file);
+      if (!validation.ok) throw new Error(validation.message);
+
+      const path = noteImagePath(user.id, noteId, extensionForImage(file), crypto.randomUUID());
+      const { error } = await supabase.storage.from("note-images").upload(path, file, {
+        contentType: file.type,
+        upsert: false,
+      });
+      if (error) throw new Error(error.message);
+      return { path, alt: file.name || "スクリーンショット" };
+    },
+    [supabase, user],
+  );
+
   const refresh = useCallback(async () => {
     await fetchNotes();
   }, [fetchNotes]);
@@ -214,6 +233,7 @@ export function NotesProvider({ children }: { children: ReactNode }) {
       updateNote,
       deleteNote,
       togglePin,
+      uploadNoteImage,
       refresh,
       signOut,
     }),
@@ -227,6 +247,7 @@ export function NotesProvider({ children }: { children: ReactNode }) {
       updateNote,
       deleteNote,
       togglePin,
+      uploadNoteImage,
       refresh,
       signOut,
     ],
