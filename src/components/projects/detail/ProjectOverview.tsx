@@ -38,19 +38,19 @@ export function ProjectOverview({ project }: { project: Project }) {
               </span>
               <div
                 role="progressbar"
-                aria-valuenow={summary.averageProgress}
+                aria-valuenow={summary.completionPercent}
                 aria-valuemin={0}
                 aria-valuemax={100}
-                aria-label="平均進捗"
+                aria-label="完了率"
                 className="h-1.5 flex-1 overflow-hidden rounded-full bg-[var(--color-line-faint)]"
               >
                 <div
                   className="h-full rounded-full bg-[var(--color-zenith)]"
-                  style={{ width: `${summary.averageProgress}%` }}
+                  style={{ width: `${summary.completionPercent}%` }}
                 />
               </div>
               <span className="tabular shrink-0 text-[12px] text-[var(--color-ink-muted)]">
-                {summary.averageProgress}%
+                {summary.completionPercent}%
               </span>
             </div>
             <div className="flex flex-wrap gap-x-4 gap-y-1 text-[12px] text-[var(--color-ink-muted)]">

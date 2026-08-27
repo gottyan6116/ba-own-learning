@@ -1,6 +1,7 @@
 "use client";
 
 import { useProjectTasks } from "@/lib/project-tasks/ProjectTasksProvider";
+import { PROJECT_TASK_STATUS_LABEL } from "@/lib/project-tasks/types";
 import { TaskCreateButton } from "../tasks/TaskCreateButton";
 import type { GanttZoom } from "./ganttLayout";
 
@@ -37,6 +38,21 @@ export function GanttToolbar({
             {value === "standard" ? "標準" : "コンパクト"}
           </button>
         ))}
+      </div>
+
+      <div className="hidden items-center gap-2 text-[11px] text-[var(--color-ink-muted)] xl:flex" aria-label="ステータスの凡例">
+        {([
+          ["todo", "bg-[var(--color-line-strong)]"],
+          ["in_progress", "bg-[var(--color-zenith)]"],
+          ["blocked", "bg-[var(--color-danger)]"],
+          ["done", "bg-[var(--color-ink-muted)]"],
+        ] as const).map(([statusKey, colorClass]) => (
+          <span key={statusKey} className="flex items-center gap-1">
+            <span aria-hidden="true" className={`h-2 w-2 rounded-full ${colorClass}`} />
+            {PROJECT_TASK_STATUS_LABEL[statusKey]}
+          </span>
+        ))}
+        <span>（カスタム色はタスク設定を優先）</span>
       </div>
 
       <p className="hidden text-[12px] text-[var(--color-ink-muted)] md:block">

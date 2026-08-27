@@ -14,7 +14,7 @@ import {
 import { useNotes } from "@/lib/notes/NotesProvider";
 import { insertAtSelection, noteImageMarkdown } from "@/lib/notes/media";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
-import type { Note } from "@/lib/notes/types";
+import { noteTitleOrFallback, type Note } from "@/lib/notes/types";
 import { useProjects } from "@/lib/projects/ProjectsProvider";
 import { projectNameOrFallback } from "@/lib/projects/types";
 import { formatDateTime } from "@/lib/format";
@@ -85,6 +85,7 @@ export function NotesEditor({ note }: { note: Note }) {
   };
 
   const beginTitleEdit = () => {
+    if (!title.trim()) setTitle(noteTitleOrFallback(note));
     setEditingTitle(true);
     requestAnimationFrame(() => titleRef.current?.focus());
   };
@@ -131,6 +132,7 @@ export function NotesEditor({ note }: { note: Note }) {
                   setEditingTitle(false);
                 }
               }}
+              placeholder={noteTitleOrFallback(note)}
               aria-label="ノートのタイトル"
               className="w-full border-0 bg-transparent py-1 text-[21px] font-bold text-[var(--color-ink)] outline-none"
             />
@@ -142,7 +144,7 @@ export function NotesEditor({ note }: { note: Note }) {
               title="ダブルクリックでタイトルを編集"
               className="block max-w-full cursor-text truncate py-1 text-left text-[21px] font-bold text-[var(--color-ink)]"
             >
-              {title || "無題のメモ"}
+              {title || noteTitleOrFallback(note)}
             </button>
           )}
         </div>

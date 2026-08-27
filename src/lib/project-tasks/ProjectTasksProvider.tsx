@@ -14,6 +14,7 @@ import { useAuth } from "@/lib/auth/AuthProvider";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { SaveStatus } from "@/lib/notes/types";
 import {
+  normalizeTaskDraftForStatus,
   reorderTasksForBoard,
   sortTasks,
   type ProjectTask,
@@ -111,21 +112,23 @@ export function ProjectTasksProvider({
       if (!supabase || !user) return null;
       setSaveStatus("saving");
 
+      const normalizedDraft = normalizeTaskDraftForStatus(draft);
+
       const nextSortOrder =
-        draft.sort_order ?? tasks.reduce((max, t) => Math.max(max, t.sort_order), -1) + 1;
+        normalizedDraft.sort_order ?? tasks.reduce((max, t) => Math.max(max, t.sort_order), -1) + 1;
 
       const { data, error } = await supabase
         .from("project_tasks")
         .insert({
           user_id: user.id,
           project_id: projectId,
-          title: draft.title ?? "",
-          description: draft.description ?? null,
-          status: draft.status ?? "todo",
-          start_date: draft.start_date ?? null,
-          end_date: draft.end_date ?? null,
-          progress: draft.progress ?? 0,
-          bar_color: draft.bar_color ?? null,
+          title: normalizedDraft.title ?? "",
+          description: normalizedDraft.description ?? null,
+          status: normalizedDraft.status ?? "todo",
+          start_date: normalizedDraft.start_date ?? null,
+          end_date: normalizedDraft.end_date ?? null,
+          progress: normalizedDraft.progress ?? 0,
+          bar_color: normalizedDraft.bar_color ?? null,
           sort_order: nextSortOrder,
         })
         .select()
@@ -146,17 +149,18 @@ export function ProjectTasksProvider({
 
   const updateTask = useCallback<ProjectTasksContextValue["updateTask"]>(
     async (id, patch) => {
+      const normalizedPatch = normalizeTaskDraftForStatus(patch);
       const snapshot = tasks;
       const now = new Date().toISOString();
       setTasks((prev) =>
-        sortTasks(prev.map((task) => (task.id === id ? { ...task, ...patch, updated_at: now } : task))),
+        sortTasks(prev.map((task) => (task.id === id ? { ...task, ...normalizedPatch, updated_at: now } : task))),
       );
 
       if (!supabase || !user) return null;
       setSaveStatus("saving");
       const { data, error } = await supabase
         .from("project_tasks")
-        .update(patch)
+        .update(normalizedPatch)
         .eq("id", id)
         .select()
         .single();
@@ -185,7 +189,7 @@ export function ProjectTasksProvider({
 
       const changed = next.filter((task) => {
         const previous = snapshot.find((item) => item.id === task.id);
-        return previous && (previous.status !== task.status || previous.sort_order !== task.sort_order);
+        return previous && (previous.status !== task.status || previous.sort_order !== task.sort_order || previous.progress !== task.progress);
       });
       if (changed.length === 0) return true;
 
@@ -197,7 +201,7 @@ export function ProjectTasksProvider({
         changed.map((task) =>
           supabase
             .from("project_tasks")
-            .update({ status: task.status, sort_order: task.sort_order })
+            .update({ status: task.status, sort_order: task.sort_order, progress: task.progress })
             .eq("id", task.id),
         ),
       );

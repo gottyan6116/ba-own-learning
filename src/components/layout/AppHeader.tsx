@@ -8,7 +8,7 @@ import { useNotes } from "@/lib/notes/NotesProvider";
 import { useProjects } from "@/lib/projects/ProjectsProvider";
 import { useLearning } from "@/lib/learning/LearningProvider";
 
-const NAV = [{ href: "/", label: "Knowledge Map" }, { href: "/notes", label: "Notes" }, { href: "/learning", label: "Learning" }, { href: "/library", label: "ライブラリー" }, { href: "/memory", label: "メモリ" }];
+const NAV = [{ href: "/", label: "Knowledge Map" }, { href: "/notes", label: "Notes" }, { href: "/learning", label: "Learning" }, { href: "/library", label: "ライブラリー" }];
 export function AppHeader() {
   const pathname = usePathname(); const { status, user, signOut } = useAuth(); const { notes } = useNotes(); const { projects } = useProjects(); const { pages } = useLearning(); const [analysisOpen, setAnalysisOpen] = useState(false); const [projectsOpen, setProjectsOpen] = useState(false);
   const count = (href: string) => href === "/notes" ? notes.length : href === "/learning" ? pages.length : 0;

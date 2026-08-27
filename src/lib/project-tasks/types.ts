@@ -102,6 +102,11 @@ export function groupTasksForBoard(
  * 移動後のボード状態を純粋に計算する。移動元・移動先の列は 0 始まりの
  * 連番へ振り直すため、DB 保存時にそのまま差分として使える。
  */
+/** 完了へ変更した経路では進捗を必ず100%にそろえる。完了から戻す場合は値を保持する。 */
+export function normalizeTaskDraftForStatus(draft: ProjectTaskDraft): ProjectTaskDraft {
+  return draft.status === "done" ? { ...draft, progress: 100 } : draft;
+}
+
 export function reorderTasksForBoard(
   tasks: ProjectTask[],
   taskId: string,
@@ -114,7 +119,10 @@ export function reorderTasksForBoard(
   const grouped = groupTasksForBoard(tasks.filter((task) => task.id !== taskId));
   const destination = grouped[destinationStatus];
   const index = Math.max(0, Math.min(destinationIndex, destination.length));
-  destination.splice(index, 0, { ...moving, status: destinationStatus });
+  destination.splice(index, 0, {
+    ...moving,
+    ...normalizeTaskDraftForStatus({ status: destinationStatus, progress: moving.progress }),
+  });
 
   const byId = new Map<string, ProjectTask>();
   for (const status of PROJECT_TASK_BOARD_COLUMNS) {
@@ -129,6 +137,7 @@ export interface TaskProgressSummary {
   total: number;
   done: number;
   averageProgress: number;
+  completionPercent: number;
   byStatus: Record<ProjectTaskStatus, number>;
 }
 
@@ -148,6 +157,7 @@ export function summarizeTaskProgress(tasks: ProjectTask[]): TaskProgressSummary
     total: tasks.length,
     done: byStatus.done,
     averageProgress: tasks.length === 0 ? 0 : Math.round(progressSum / tasks.length),
+    completionPercent: tasks.length === 0 ? 0 : Math.round((byStatus.done / tasks.length) * 100),
     byStatus,
   };
 }

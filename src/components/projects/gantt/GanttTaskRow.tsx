@@ -32,6 +32,7 @@ export function GanttTaskRow({
         <button
           type="button"
           onClick={() => onOpenEditor(task.id)}
+          title={taskTitleOrFallback(task)}
           className="w-full cursor-pointer truncate text-left text-[13px] text-[var(--color-ink)] transition-colors duration-150 hover:text-[var(--color-zenith)]"
         >
           {taskTitleOrFallback(task)}

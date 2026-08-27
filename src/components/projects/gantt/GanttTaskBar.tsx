@@ -63,6 +63,9 @@ export function GanttTaskBar({
   const left = differenceInDays(displayStart, rangeStart) * dayWidth;
   const durationDays = differenceInDays(displayEnd, displayStart) + 1;
   const width = Math.max(durationDays * dayWidth, dayWidth);
+  const label = taskTitleOrFallback(task);
+  const labelFitsInside = width >= 128;
+  const tooltip = `${label}` + "\n" + `${formatShortDate(formatISODate(displayStart))} → ${formatShortDate(formatISODate(displayEnd))}` + "\n" + `${PROJECT_TASK_STATUS_LABEL[task.status]} ・進捗 ${task.progress}%`;
 
   const beginDrag = (event: React.PointerEvent<HTMLDivElement>, mode: DragMode) => {
     if (event.pointerType === "mouse" && event.button !== 0) return;
@@ -136,7 +139,8 @@ export function GanttTaskBar({
     <div
       role="button"
       tabIndex={0}
-      aria-label={`${taskTitleOrFallback(task)}（${PROJECT_TASK_STATUS_LABEL[task.status]}）`}
+      aria-label={tooltip}
+      title={tooltip}
       onPointerDown={(event) => beginDrag(event, "move")}
       onPointerMove={onPointerMove}
       onPointerUp={() => void onPointerUp()}
@@ -151,10 +155,13 @@ export function GanttTaskBar({
       className={`group absolute cursor-grab select-none rounded-[4px] ${resolveGanttBarClass(task.bar_color, task.status)} focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-focus)]`}
     >
       <div className="flex h-full items-center overflow-hidden px-2">
-        <span className="truncate text-[12px] font-medium text-white">
-          {taskTitleOrFallback(task)}
-        </span>
+        {labelFitsInside && <span className="truncate text-[12px] font-medium text-white">{label}</span>}
       </div>
+      {!labelFitsInside && (
+        <span className="pointer-events-none absolute left-[calc(100%+6px)] top-1/2 z-20 -translate-y-1/2 whitespace-nowrap text-[12px] font-medium text-[var(--color-ink)] drop-shadow-[0_1px_0_rgba(255,255,255,0.9)]">
+          {label}
+        </span>
+      )}
 
       {draft && (
         <div className="tabular pointer-events-none absolute -top-6 left-0 whitespace-nowrap rounded-[3px] bg-[var(--color-ink)] px-1.5 py-0.5 text-[11px] text-white">
